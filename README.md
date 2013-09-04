@@ -6,11 +6,11 @@ This is the official repository for team Aether. It contains the source code for
 Team Members
 ------------
 
-Devesh Gade
-Heramb Gadekar
-Vivitsu Maharaja
-Aniket Oak
-Shrutikirti Patkar
+1. Devesh Gade
+2. Heramb Gadekar
+3. Vivitsu Maharaja
+4. Aniket Oak
+5. Shrutikirti Patkar
 
 Project Description
 ===================
