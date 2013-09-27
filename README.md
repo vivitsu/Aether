@@ -15,5 +15,5 @@ Team Members
 Project Description
 ===================
 
-AetherFS is a decentralized, distributed file systems that aims to be scalable & fault-tolerant while offering high availability of data. 
+AetherFS is a decentralized, distributed file system that aims to be scalable & fault-tolerant while offering high availability of data. 
 
