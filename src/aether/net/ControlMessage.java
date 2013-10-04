@@ -33,4 +33,6 @@ public class ControlMessage extends Message {
     public char getMessageSubtype () {
         return header.getSubtype();
     }
+    
+    
 }
