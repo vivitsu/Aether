@@ -4,7 +4,8 @@
  */
 package aether.cluster;
 
-import aether.core.AetherNode;
+import aether.conf.ConfigMgr;
+
 
 /**
  *
@@ -26,7 +27,7 @@ public class ClusterMgr implements Runnable {
         if (isOne) {
             throw new UnsupportedOperationException();
         } else {
-            socketNum = AetherNode.getServSocket();
+            socketNum = ConfigMgr.getServSocket();
             clusterTable = new ClusterTable();
             isOne = true;
         }
