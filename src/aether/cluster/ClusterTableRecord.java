@@ -49,5 +49,14 @@ public class ClusterTableRecord {
     }
     
     
-    
+    /**
+     * String representation of the record in form:
+     * Node Id = <Identifier>, Node IP = <Node IP address>.
+     * @return  String representation of the table record
+     */
+    public String toString () {
+        String recordString = "Node Id = " + nodeIdentifier + ", Node IP = " 
+                + nodeIp.toString();
+        return recordString;
+    }
 }

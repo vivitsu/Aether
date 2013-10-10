@@ -62,6 +62,13 @@ public class ClusterMgr implements Runnable {
     
     
     /**
+     * Print cluster table in user readable format.
+     */
+    private void printClusterView () {
+        clusterTable.printTable();
+    }
+    
+    /**
      * Broadcast the discovery message in the cluster for the purpose of joining
      * the cluster
      * @throws IOException 
@@ -135,7 +142,31 @@ public class ClusterMgr implements Runnable {
         for (ClusterTableRecord rec:recs) {
             clusterTable.insertRecord(rec);
         }
+        
+        printClusterView();
     }
+    
+    
+    
+    
+    
+    
+    /**
+     * Process the discovery message by some node.
+     * @param d     Discovery message by the new node.
+     */
+    private void processDiscovery (Message d) {
+        try {
+            ControlMessage disc = (ControlMessage) d;
+            InetAddress newNodeIp = disc.getSourceIp();
+            ControlMessage r = new ControlMessage('r', newNodeIp);
+            comm.send((Message)r);
+        } catch (IOException ex) {
+            System.err.println("[ERROR]: Could not respond to discovery "
+                    + "message");
+        }
+    }
+    
     
     
     
@@ -161,6 +192,7 @@ public class ClusterMgr implements Runnable {
                         processJoinMessage(m);
                 
             case 'd': /* Someone wants to join the cluster */
+                        processDiscovery(m);
             
             case 'j': /* We need to act as a contact node for someone */
         }

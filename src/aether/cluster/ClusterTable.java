@@ -5,6 +5,8 @@
 package aether.cluster;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  *
@@ -93,5 +95,17 @@ public class ClusterTable {
     
     
     
+    
+    /**
+     * Print the cluster table on stdout.
+     */
+    public void printTable () {
+        Set<Integer> keys = table.keySet();
+        Iterator<Integer> it = keys.iterator();
+        
+        while (it.hasNext()) {
+            System.out.print(table.get(it.next()).toString());
+        }
+    }
     
 }
