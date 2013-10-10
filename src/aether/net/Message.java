@@ -1,10 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package aether.net;
 
 import java.io.Serializable;
+import java.net.InetAddress;
 
 /**
  *
@@ -56,9 +53,10 @@ public class Message implements Serializable {
      * @param   data    Array of characters holding the data
      * @param   subtype Subtype of the message (for control messages)
      */
-    public Message (char messageType, char[] data, char subtype) {
+    public Message (char messageType, char[] data, char subtype,
+            InetAddress dest) {
         
-        header = new Header(messageType, subtype);
+        header = new Header(messageType, subtype, dest);
         payload = new Payload (data);
     }
     
@@ -69,9 +67,9 @@ public class Message implements Serializable {
      * @param   messageType Type of the message
      * @param   subtype Subtype of the message (for control messages)
      */
-    public Message (char messageType, char subtype) {
+    public Message (char messageType, char subtype, InetAddress dest) {
         
-        header = new Header(messageType, subtype);
+        header = new Header(messageType, subtype, dest);
         payload = null;
     }
     
@@ -85,5 +83,56 @@ public class Message implements Serializable {
      */
     public char getMessageType () {
         return header.getType();
+    }
+    
+    
+    
+    
+    /**
+     * Get the IP address of the message source
+     * @return  Source IP address
+     */
+    public InetAddress getSourceIp ()  {
+        return header.getSourceIp();
+    }
+    
+    
+    
+    
+    /**
+     * Set the IP address of the message destination
+     * @param ipAddr    Destination IP address
+     */
+    public void setDestIp (InetAddress ipAddr) {
+        header.setDestIp(ipAddr);
+    }
+    
+    
+    
+    
+    /**
+     * Get the IP address of the message destination
+     * @return  IP address of the message destination
+     */
+    public InetAddress getDestIp () {
+        return header.getDestIp();
+    }
+    
+    
+    /**
+     * Get the identifier of the destination node
+     * @return  destination identifier
+     */
+    public int getDestId () {
+        return header.getDest();
+    }
+    
+    
+    /**
+     * Get the identifier of the source node
+     * @return  source identifier
+     */
+    public int getSourceId () {
+        return header.getSource();
     }
 }

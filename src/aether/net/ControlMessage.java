@@ -1,8 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package aether.net;
+
+import java.net.InetAddress;
 
 /**
  *
@@ -19,9 +18,9 @@ public class ControlMessage extends Message {
      * @param subtype Subtype of the control message
      * @see Message
      */
-    public ControlMessage (char subtype) {
+    public ControlMessage (char subtype, InetAddress dest) {
         
-        super ('c', subtype);
+        super ('c', subtype, dest);
     }
     
     
