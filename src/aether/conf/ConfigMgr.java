@@ -156,7 +156,11 @@ public class ConfigMgr {
      */
     public static int getNodeId () {
         
-        Integer i = Integer.parseInt(configDict.get("nodeId"));
+        String s = configDict.get("nodeId");
+        if (s == null) {
+            return 0;
+        }
+        Integer i = Integer.parseInt(s);
         return i.intValue();
                 
     }
