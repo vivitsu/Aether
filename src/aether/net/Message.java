@@ -1,5 +1,6 @@
 package aether.net;
 
+import aether.conf.ConfigMgr;
 import java.io.Serializable;
 import java.net.InetAddress;
 
@@ -56,7 +57,8 @@ public class Message implements Serializable {
     public Message (char messageType, char[] data, char subtype,
             InetAddress dest) {
         
-        header = new Header(messageType, subtype, dest);
+        int sourceId = ConfigMgr.getNodeId();
+        header = new Header(messageType, subtype, sourceId, 0, dest);
         payload = new Payload (data);
     }
     
@@ -66,12 +68,34 @@ public class Message implements Serializable {
      * the message type as well as subtype.
      * @param   messageType Type of the message
      * @param   subtype Subtype of the message (for control messages)
+     * @param   dest Destination IP address
      */
     public Message (char messageType, char subtype, InetAddress dest) {
         
-        header = new Header(messageType, subtype, dest);
+        
+        int sourceId = ConfigMgr.getNodeId();
+        header = new Header(messageType, subtype, sourceId, 0, dest);
         payload = null;
     }
+    
+    
+    
+    /**
+     * Create a message with messageType, subType, destination id, and 
+     * destination IP address.
+     * @param messageType
+     * @param subtype
+     * @param destId
+     * @param dest 
+     */
+    public Message (char messageType, char subtype, int destId, 
+            InetAddress dest) {
+        
+        int sourceId = ConfigMgr.getNodeId();
+        header = new Header(messageType, subtype, sourceId, destId, dest);
+        payload = null;
+    }
+    
     
     
     

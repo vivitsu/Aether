@@ -37,16 +37,20 @@ public class Header {
     /**
      * Header of the message. Header holds the metadata required to parse the
      * message
-     * 
-     * @param type Type of the message. Can be (c)ontrol or (d)ata.
-     * @param subtype Subtype of the message. This is applicable only for 
-     *                control messages
-     */    
-    public Header (char type, char subtype, InetAddress dest) {
+     * @param type  Type of the message
+     * @param subtype   Subtype of the message
+     * @param source    Source identifier
+     * @param destid    Destination identifier
+     * @param dest      Destination IP address
+     */  
+    public Header (char type, char subtype, int source, int destId, 
+            InetAddress dest) {
         
         messageType = type;
         messageSubtype = subtype;
+        this.source = source;
         sourceIp = getLocalIp();
+        this.dest = destId;
         destIp = dest;
     }
     
