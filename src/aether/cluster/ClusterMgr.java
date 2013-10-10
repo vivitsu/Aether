@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -71,7 +74,11 @@ public class ClusterMgr implements Runnable {
     
     
     
-    
+    /**
+     * Process the control message of subtype 'r' indicating reception of a 
+     * response to discovery message
+     * @param r     Discovery response message
+     */
     private void processDiscoveryResponse (Message r) {
         /* Not implemented yet. Here we need to processes the discovery
          * response and initiate cluster joining mechanism.
@@ -84,25 +91,80 @@ public class ClusterMgr implements Runnable {
          * Then wait for its response
          */
         ControlMessage d2 = new ControlMessage ('j', contactIp);
-        comm.send(d2);
-        
-        /* The second response from the contact node will have your identifier
-         * as well as the list of all the nodes in the cluster.
-         */
-        ControlMessage r2 = (ControlMessage) comm.receive();
-        
-        nodeId = r2.getDestId();
-        ConfigMgr.setNodeId(nodeId);
-        
-        
+        try {        
+            comm.send(d2);
+        } catch (IOException ex) {
+            System.err.println("[ERROR]: Sending the 'join' message failed");
+            ex.printStackTrace();
+        }
     }
     
     
 
     
+    /**
+     * Process the control message of subtype 'j' indicating we are included
+     * in the cluster.
+     * @param j     Control message of subtype 'j'
+     * @throws IllegalStateException when parsing the cluster table records 
+     *      fails because either IP address could not be found or wrong message
+     *      was parsed for the records. ClusterMgr cannot continue with bad
+     *      cluster table.
+     */
+    private void processJoinMessage (Message j) throws IllegalStateException {
+        ControlMessage join = (ControlMessage) j;
+        nodeId = join.getDestId();
+        ConfigMgr.setNodeId(nodeId);
+        
+        
+        /* Now we need to update our cluster table by parsing the data in
+         * the payload of the control message.
+         */
+        ClusterTableRecord[] recs;
+        try {
+            recs = join.parseJControl();
+        } catch (UnknownHostException ex) {
+            System.err.println("[ERROR]: Could not parse string to create IP");
+            throw new IllegalStateException();
+        } catch (UnsupportedOperationException ex) {
+            System.err.println("[ERROR]: Tried parsing non-join message for"
+                    + " cluster table records");
+            throw new IllegalStateException();
+        }
+        
+        for (ClusterTableRecord rec:recs) {
+            clusterTable.insertRecord(rec);
+        }
+    }
     
     
     
+    
+    /**
+     * This is a method which takes a message and calls an appropriate method
+     * to handle that kind of message.
+     * @param m     Message to be processed
+     * @throws IllegalStateException when parsing of critical control message 
+     *      fails
+     */
+    private void processMessage (Message m) throws IllegalStateException {
+        
+        ControlMessage ctrl = (ControlMessage) m;
+        char ctrlType = ctrl.getMessageSubtype();
+        
+        switch (ctrlType) {
+            
+            case 'r': /* discovery response */
+                        processDiscoveryResponse(m);
+                
+            case 'm': /* cluster membership message */
+                        processJoinMessage(m);
+                
+            case 'd': /* Someone wants to join the cluster */
+            
+            case 'j': /* We need to act as a contact node for someone */
+        }
+    }
     
     
     
@@ -119,6 +181,10 @@ public class ClusterMgr implements Runnable {
         clusterTable.insertRecord(myRecord);
         ConfigMgr.setNodeId(nodeId);
     }
+    
+    
+    
+    
     
     
     
@@ -142,7 +208,7 @@ public class ClusterMgr implements Runnable {
              */
             
             
-            processDiscoveryResponse(discoveryResponse);
+            processMessage (discoveryResponse);
             
         } catch (SocketTimeoutException to) {
             /* Looks like I am the first one up. Initialize the table.
@@ -151,6 +217,10 @@ public class ClusterMgr implements Runnable {
         } catch (IOException ex) {
             System.err.println("[ERROR]: Cluster discovery failed");
             ex.printStackTrace();
+        } catch (IllegalStateException badState) {
+            System.err.println("[ERROR]: Cluster manager exiting due to "
+                    + "inconsistent state");
+            return;
         }
         
         
@@ -158,6 +228,19 @@ public class ClusterMgr implements Runnable {
          * Now keep on listening to the socket for any incoming messages
          */
         
+        while (true) {
+            Message m;
+            try {
+                m = comm.receive();
+                processMessage (m);
+            } catch (SocketTimeoutException to) {
+                // nothing needs to be done here
+            } catch (IOException ex) {
+                System.err.println("[ERROR]: could not listen on the socket");
+                return;
+            }
+            
+        }
     }
     
     
