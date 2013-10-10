@@ -38,6 +38,7 @@ public class NetMgr {
     
     public NetMgr (int port) throws SocketException {
         
+        this.port = port;
         socket = new DatagramSocket (port, ConfigMgr.getLocalIp());
     }
     
