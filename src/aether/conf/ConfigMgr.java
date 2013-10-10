@@ -1,9 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package aether.conf;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 
 /**
@@ -13,11 +12,14 @@ import java.util.HashMap;
 public class ConfigMgr {
     
     
-    private static HashMap<String,String> configDict;
+    private static HashMap<String,String> configDict = 
+            new HashMap<String,String>();
+
+    
     
     
     public ConfigMgr () {
-        configDict = new HashMap<String,String>();
+        
     }
     
     
@@ -43,19 +45,119 @@ public class ConfigMgr {
         
         if (configDict == null) {
             System.exit(1);
-        } 
+        }
+        
+        
+        /*
+         * We need to put the local IP address on which we are running in config
+         * dict so that anyone who needs it in the program can get that from 
+         * here 
+         */
+        try {
+            InetAddress myIp = InetAddress.getLocalHost();
+            configDict.put("localIp", myIp.toString());
+            
+        } catch (UnknownHostException ex) {
+            System.err.println("[ERROR]: ConfigMgr could not find local "
+                    + "IP address");
+            ex.printStackTrace();
+        }
     }
     
     
     
     /**
-     * Get the configuration parameter identifying the port on which the cluster
-     * management thread of the data node runs.
+     * Get the configuration parameter identifying the port on which the commMgr
+     * receiver thread waits.
+     * @return  Configuration parameter identifying socket for communication
+     *          manager receiver
+     */
+    public static int getReceiverSock () {
+        
+        Integer port = Integer.parseInt(configDict.get("receiverSock"));
+        return port.intValue();
+    }
+    
+    
+    
+    
+    
+    /**
+     * Get the configuration parameter identifying the port on which the commMgr
+     * sender thread runs.
+     * @return  Configuration parameter identifying socket for communication
+     *          manager sender
+     */
+    public static int getSenderPort() {
+        
+        Integer port = Integer.parseInt(configDict.get("senderSock"));
+        return port.intValue();
+    }
+    
+    
+    
+    
+    /**
+     * Get the configuration parameter identifying the port on which the 
+     * clusterMgr sends and receives messages.
      * @return  Configuration parameter identifying socket for cluster manager
      */
-    public static int getServSocket () {
+    public static int getClusterPort() {
         
-        Integer port = Integer.parseInt(configDict.get("servSock"));
+        Integer port = Integer.parseInt(configDict.get("clusterPort"));
         return port.intValue();
+    }
+    
+    
+    
+    
+    
+    /**
+     * Get the name of the interface we used for connecting to the cluster
+     * @return  String containing the name of the network interface
+     */
+    public static String getInterfaceName () {
+        return configDict.get("interface");
+    }
+    
+    
+    
+    
+    /**
+     * Get the configuration parameter local IP address.
+     * @return  Local IP address
+     */
+    public static InetAddress getLocalIp () {
+       
+        InetAddress ip = null;
+        try {
+            ip = InetAddress.getByName(configDict.get("localIp"));
+        } catch (UnknownHostException ex) {
+            System.err.println("[ERROR]: Could not get local IP");
+        }
+        return ip;
+    }
+    
+    
+    /**
+     * Set the identifier for this node. This should be called by clusterMgr
+     * after node is accepted in the cluster
+     * @param id    identifier of this node assigned by clusterMgr
+     */
+    public static void setNodeId (int id) {
+        Integer i = id; 
+        configDict.put("nodeId", i.toString());
+    }
+    
+    
+    /**
+     * Get the identifier of this node.
+     * @return  int having the identifier of this node in the cluster
+     */
+    public static int getNodeId () {
+        
+        Integer i = Integer.parseInt(configDict.get("nodeId"));
+        return i.intValue();
+                
     }
 }
