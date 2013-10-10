@@ -4,7 +4,9 @@
  */
 package aether.core;
 
-import aether.conf.*;
+import aether.cluster.ClusterMgr;
+import aether.conf.ConfigMgr;
+import java.net.SocketException;
 
 /**
  *
@@ -30,5 +32,16 @@ public class AetherNode {
         
         String configFile = (argv.length == 0) ? null : argv[0];
         ConfigMgr.initConfig(configFile);
+            
+        try {
+            ClusterMgr clusterManager = new ClusterMgr();
+            Thread clusterMgrThread = new Thread(clusterManager);
+            clusterMgrThread.start();
+            
+        } catch (UnsupportedOperationException ex) {
+            // This means cluster manager is already running. No worries then.
+        } catch (SocketException ex) {
+            System.err.println("[ERROR]: Could not start cluster manager");
+        }
     }
 }
