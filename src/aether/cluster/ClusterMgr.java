@@ -216,6 +216,40 @@ public class ClusterMgr implements Runnable {
     
     
     
+     private int process_write_request(HashMap<String, String> input_chunks)
+    {
+    	int is_file_processed = 0;
+    	/*
+    	 * This function will be called by the client_interface 
+    	 * to send data over the primary node.
+    	 * After copying chunks from the client_interface, this function 
+    	 * will call the create_replicas for creating & storing the chunk replicas on the cluster
+    	 * 
+    	 */
+    	return is_file_processed;
+    }
+    
+    
+    private void create_replicas(HashMap<String,String> chunks)
+    {
+
+        /*
+         * Replica creation of the input file chunks
+         */
+    }
+    
+    private HashMap<String,String> process_read_request(String file)
+    {
+    	HashMap<String,String> single_chunk = new HashMap<String,String>();
+    	/*
+    	 * This function will be called by the client_interface to read data 
+    	 * Every cluster node having the file chunk will return the chunk to the client_interface 
+    	 */
+    	return single_chunk;
+    }
+    
+    
+    
     
     
     
