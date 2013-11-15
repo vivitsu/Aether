@@ -80,6 +80,8 @@ public class Message implements Serializable {
     
     
     
+    
+    
     /**
      * Create a message with messageType, subType, destination id, and 
      * destination IP address.
