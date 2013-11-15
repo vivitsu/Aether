@@ -13,7 +13,7 @@ public class ConfigMgr {
     
     
     private static HashMap<String,String> configDict = 
-            new HashMap<String,String>();
+            new HashMap<>();
 
     
     
@@ -63,38 +63,6 @@ public class ConfigMgr {
             ex.printStackTrace();
         }
     }
-    
-    
-    
-    /**
-     * Get the configuration parameter identifying the port on which the commMgr
-     * receiver thread waits.
-     * @return  Configuration parameter identifying socket for communication
-     *          manager receiver
-     */
-    public static int getReceiverSock () {
-        
-        Integer port = Integer.parseInt(configDict.get("receiverSock"));
-        return port.intValue();
-    }
-    
-    
-    
-    
-    
-    /**
-     * Get the configuration parameter identifying the port on which the commMgr
-     * sender thread runs.
-     * @return  Configuration parameter identifying socket for communication
-     *          manager sender
-     */
-    public static int getSenderPort() {
-        
-        Integer port = Integer.parseInt(configDict.get("senderSock"));
-        return port.intValue();
-    }
-    
-    
     
     
     /**
@@ -163,5 +131,22 @@ public class ConfigMgr {
         Integer i = Integer.parseInt(s);
         return i.intValue();
                 
+    }
+    
+    
+    
+    /**
+     * Get the number of attempts a node in the cluster makes to get other nodes
+     * to agree the entry of a new node
+     * 
+     * @return  Integer containing number of attempts
+     */
+    public static int getNumJoinAttempts () {
+        String s = configDict.get("numJoinAttempts");
+        if (s == null) {
+            return 5;
+        }
+        Integer i = Integer.parseInt(s);
+        return i.intValue();
     }
 }
