@@ -9,8 +9,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 
 /**
@@ -29,7 +29,8 @@ public class ClusterMgr implements Runnable {
     private int clusterPort;
     private NetMgr comm;
     private int nodeId;
-	private int nodeIdCounter;
+    private int nodeIdCounter;
+    private HashMap<Integer,ClusterTableRecord> tempRecs = new HashMap<>();
     
     
     /**
@@ -42,7 +43,7 @@ public class ClusterMgr implements Runnable {
         if (isOne) {
             throw new UnsupportedOperationException();
         } else {
-			nodeIdCounter = 0;
+            nodeIdCounter = 0;
             clusterTable = new ClusterTable();
             init();
             isOne = true;
@@ -103,8 +104,8 @@ public class ClusterMgr implements Runnable {
         try {        
             comm.send(d2);
         } catch (IOException ex) {
-			System.err.println("[ERROR]: Sending the 'membership request' "
-				+ "message failed");
+            System.err.println("[ERROR]: Sending the 'membership request' "
+                    + "message failed");
             ex.printStackTrace();
         }
     }
@@ -174,12 +175,193 @@ public class ClusterMgr implements Runnable {
     
     
     
+    
+    
+    /**
+     * Process join request response from the other nodes in the cluster.
+     * @param m Control message- reply to the join request from contact node
+     * @return  true if reply is 'accept'
+     */
+    private boolean processJoinResponseMessage (Message m) {
+        
+        ControlMessage reply = (ControlMessage) m;
+        if (reply == null || reply.getMessageSubtype() != 'a') {
+            return false;
+        }
+        if (reply.parseAControl().equalsIgnoreCase("accept")) {
+            return true;
+        }
+        return false;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    /**
+     * Process the membership request from a new node and respond to it with
+     * a join message if successful
+     * @param d     Membership request message
+     */
+    private void processMembershipRequest (Message d) {
+  
+        ControlMessage mReq = (ControlMessage) d;
+        // find total nodes in the cluster
+        int numNodes = clusterTable.getNumRecords() - 1;
+        int numAttempts = ConfigMgr.getNumJoinAttempts();
+        
+        boolean success = false;
+        ClusterTableRecord tempNodeRec = null;
+        Integer tempNodeId = null;
+        
+        try {
 
-	private void processMembershipRequest (Message d) {
-	      
-		ControlMessage mReq = (ControlMessage) d;
-		int Temp
-	}
+            while (numAttempts > 0 && success == false) {
+
+                tempNodeId = ++nodeIdCounter;
+                
+                tempNodeRec = new ClusterTableRecord (
+                        tempNodeId, mReq.getSourceIp());
+                
+                char[] payload = tempNodeRec.toDelimitedString().toCharArray();
+
+                ControlMessage joinInfo = new ControlMessage('p',
+                        NetMgr.getBroadcastAddr(), payload);
+
+                comm.send((Message) joinInfo);
+
+                int replyCount = 0;
+                LinkedList<Message> replyList = new LinkedList<>();
+
+                for (int i = 0; i < numNodes; i++) {
+
+                    try {
+                        Message reply = comm.receive();
+                        if (processJoinResponseMessage(reply)) {
+                            replyList.add(reply);
+                        }
+                        
+                    } catch (SocketTimeoutException soe) {
+                        // nothing to do here. This means we missed a reply
+                    }
+
+                    if (replyList.size() == numNodes) {
+                        success = true;
+                    }
+                }
+
+                numAttempts--;
+            }
+
+            if (success) {
+                /* First we need to tell all the nodes that they can commit
+                 * the new node in the cluster table
+                 */
+                if (tempNodeRec != null && tempNodeId != null) {
+                    
+                    char[] load = tempNodeId.toString().toCharArray();
+                    ControlMessage commit = new ControlMessage('c',
+                        NetMgr.getBroadcastAddr(), load);
+                    comm.send(commit);
+                    clusterTable.insertRecord(tempNodeRec);
+                }
+                
+                
+                
+                /* Now we need to tell the new node that it has been admitted
+                 * in the cluster
+                 */
+                char[] joinPayload = prepareJoinMessagePayload();
+                ControlMessage joinMessage = new ControlMessage('j',
+                        mReq.getSourceIp(), joinPayload);
+                comm.send(joinMessage);
+            }
+            
+        } catch (IOException ioe) {
+            System.err.println("[ERROR]: Could not process membership "
+                    + "request");
+            ioe.printStackTrace();
+        }
+        
+
+    }
+    
+    
+    
+    
+    
+    
+    /**
+     * Process the membership proposal from a node in the cluster
+     * @param m     Membership proposal control message
+     */
+    private void processMembershipProposal (Message m) {
+        
+        ControlMessage p = (ControlMessage) m;
+        String response;
+        ClusterTableRecord tempRec = null;
+        
+        try {
+            tempRec = p.parsePControl();
+            if (tempRec == null) {
+                response = "deny";
+            } else if (clusterTable.exists(tempRec.getNodeId())) {
+                response = "deny";
+            } else {
+                response = "accept";
+            }
+            
+        } catch (UnknownHostException e) {
+            response = "deny";
+        }
+        
+        ControlMessage reply = new ControlMessage ('a', p.getSourceIp(),
+                response.toCharArray());
+        
+        try {
+            comm.send(reply);
+        } catch (IOException e) {
+            // do nothing. The contact node will timeout and try again.
+            return;
+        }
+        
+        if (tempRec != null && response.equalsIgnoreCase("accept")) {
+            tempRecs.put(tempRec.getNodeId(), tempRec);
+        }
+        
+    }
+    
+    
+    
+    
+    
+    /**
+     * Process the membership commit message
+     * @param m     Membership commit control message
+     */
+    private void processMembershipCommit (Message m) {
+        
+        ControlMessage c = (ControlMessage) m;
+        Integer newNodeId = c.parseCControl();
+        
+        ClusterTableRecord toInsert = tempRecs.get(newNodeId);
+        if (toInsert == null) {
+            // something went wrong
+            System.err.println("[ERROR]: Could not find matching temp record"
+                    + " for the commit message. tempNodeId: " + newNodeId);
+        } else {
+            clusterTable.insertRecord(toInsert);
+            tempRecs.remove(newNodeId);
+        }
+        
+    }
+    
+    
+    
+    
 
     /**
      * This is a method which takes a message and calls an appropriate method
@@ -197,16 +379,70 @@ public class ClusterMgr implements Runnable {
             
             case 'r': /* discovery response */
                         processDiscoveryResponse(m);
+                        break;
                 
             case 'j': /* cluster membership message */
                         processJoinMessage(m);
+                        break;
                 
             case 'd': /* Someone wants to join the cluster */
                         processDiscovery(m);
+                        break;
             
             case 'm': /* We need to act as a contact node for someone */
-						processMembershipRequest(m);
+                        processMembershipRequest(m);
+                        break;
+            
+            case 'a': /* This should not be called from here */
+                        break;
+            
+            case 'p': /* A membership proposal was received */
+                        processMembershipProposal(m);
+                        break;
+           
+            case 'c': /* A membership commit */
+                        processMembershipCommit(m);
+                        break;
         }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /**
+     * Prepare the payload for join message having all the records in the 
+     * cluster table in character form.
+     * @return  char array having all the records in cluster table
+     */
+    private char[] prepareJoinMessagePayload () {
+        
+        ClusterTableRecord[] tableRecs = clusterTable.getAllRecords();
+        String[] recStrings = new String[tableRecs.length];
+        
+        int i=0;
+        for (ClusterTableRecord r: tableRecs) {
+            recStrings[i++] = r.toDelimitedString();
+        }
+        
+        String s = "";
+        for (String recStr: recStrings) {
+            s = recStr + ";" + s;
+        }
+        
+        return s.toCharArray();
     }
     
     
@@ -218,7 +454,7 @@ public class ClusterMgr implements Runnable {
      */
     private void initTable () {
         
-        nodeId = 1;
+        nodeId = ++nodeIdCounter;
         ClusterTableRecord myRecord = new ClusterTableRecord (nodeId, 
                 ConfigMgr.getLocalIp());
         clusterTable.insertRecord(myRecord);
@@ -227,43 +463,7 @@ public class ClusterMgr implements Runnable {
     
     
     
-     private int process_write_request(HashMap<String, String> input_chunks)
-    {
-    	int is_file_processed = 0;
-    	/*
-    	 * This function will be called by the client_interface 
-    	 * to send data over the primary node.
-    	 * After copying chunks from the client_interface, this function 
-    	 * will call the create_replicas for creating & storing the chunk replicas on the cluster
-    	 * 
-    	 */
-    	return is_file_processed;
-    }
-    
-    
-    private void create_replicas(HashMap<String,String> chunks)
-    {
-
-        /*
-         * Replica creation of the input file chunks
-         */
-    }
-    
-    private HashMap<String,String> process_read_request(String file)
-    {
-    	HashMap<String,String> single_chunk = new HashMap<String,String>();
-    	/*
-    	 * This function will be called by the client_interface to read data 
-    	 * Every cluster node having the file chunk will return the chunk to the client_interface 
-    	 */
-    	return single_chunk;
-    }
-    
-    
-    
-    
-    
-    
+  
     
     @Override
     public void run() {
