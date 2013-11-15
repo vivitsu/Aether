@@ -26,7 +26,7 @@ public class ClusterTable {
      */
     public ClusterTable () {
         
-        table = new HashMap<Integer, ClusterTableRecord>();
+        table = new HashMap<>();
         numTables++;
     }
     
@@ -57,6 +57,17 @@ public class ClusterTable {
         table.put(key, rec);
     }
     
+    
+    
+    
+    /**
+     * Check if cluster table has a record for given node id
+     * @param nodeId
+     * @return boolean true if record exists, false otherwise
+     */
+    public boolean exists (int nodeId) {
+        return table.containsKey(nodeId);
+    }
     
     
     
@@ -107,5 +118,35 @@ public class ClusterTable {
             System.out.print(table.get(it.next()).toString());
         }
     }
+    
+    
+    /**
+     * Return the number of records in the cluster table
+     * @return  Int containing number of records in the table
+     */
+    public int getNumRecords () {
+        return table.size();
+    }
+    
+    
+    /**
+     * Get all the records in the cluster table
+     * @return  Array of all cluster table records
+     */
+    public ClusterTableRecord[] getAllRecords () {
+        
+        int tableSize = getNumRecords();
+        ClusterTableRecord[] allRecords = new ClusterTableRecord[tableSize];
+        
+        int i=0;
+        for (Integer id: table.keySet()) {
+            ClusterTableRecord rec = table.get(id);
+            allRecords[i++] = rec;
+        }
+        
+        return allRecords;
+    }
+    
+    
     
 }
