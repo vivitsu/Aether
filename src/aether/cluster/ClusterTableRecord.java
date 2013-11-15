@@ -54,9 +54,23 @@ public class ClusterTableRecord {
      * Node Id = <Identifier>, Node IP = <Node IP address>.
      * @return  String representation of the table record
      */
+    @Override
     public String toString () {
         String recordString = "Node Id = " + nodeIdentifier + ", Node IP = " 
                 + nodeIp.toString();
         return recordString;
+    }
+    
+    
+    
+    /**
+     * String representation with id and ip separated by delimiter '%'
+     * @return  Delimited string representation of the table record
+     */
+    public String toDelimitedString () {
+        
+        Integer id = nodeIdentifier;
+        String deRec = id.toString() + "%" + nodeIp.toString();
+        return deRec;
     }
 }
