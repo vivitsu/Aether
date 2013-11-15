@@ -29,6 +29,7 @@ public class ClusterMgr implements Runnable {
     private int clusterPort;
     private NetMgr comm;
     private int nodeId;
+	private int nodeIdCounter;
     
     
     /**
@@ -41,6 +42,7 @@ public class ClusterMgr implements Runnable {
         if (isOne) {
             throw new UnsupportedOperationException();
         } else {
+			nodeIdCounter = 0;
             clusterTable = new ClusterTable();
             init();
             isOne = true;
@@ -97,11 +99,12 @@ public class ClusterMgr implements Runnable {
         /* Send the 'I-want-to-join' message to the contact node
          * Then wait for its response
          */
-        ControlMessage d2 = new ControlMessage ('j', contactIp);
+        ControlMessage d2 = new ControlMessage ('m', contactIp);
         try {        
             comm.send(d2);
         } catch (IOException ex) {
-            System.err.println("[ERROR]: Sending the 'join' message failed");
+			System.err.println("[ERROR]: Sending the 'membership request' "
+				+ "message failed");
             ex.printStackTrace();
         }
     }
@@ -171,6 +174,13 @@ public class ClusterMgr implements Runnable {
     
     
     
+
+	private void processMembershipRequest (Message d) {
+	      
+		ControlMessage mReq = (ControlMessage) d;
+		int Temp
+	}
+
     /**
      * This is a method which takes a message and calls an appropriate method
      * to handle that kind of message.
@@ -188,13 +198,14 @@ public class ClusterMgr implements Runnable {
             case 'r': /* discovery response */
                         processDiscoveryResponse(m);
                 
-            case 'm': /* cluster membership message */
+            case 'j': /* cluster membership message */
                         processJoinMessage(m);
                 
             case 'd': /* Someone wants to join the cluster */
                         processDiscovery(m);
             
-            case 'j': /* We need to act as a contact node for someone */
+            case 'm': /* We need to act as a contact node for someone */
+						processMembershipRequest(m);
         }
     }
     
