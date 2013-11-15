@@ -17,8 +17,6 @@ import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -161,10 +159,7 @@ public class NetMgr {
             return null;
         }
         
-        Iterator i = iFace.getInterfaceAddresses().iterator();
-        
-        while (i.hasNext()) {
-            InterfaceAddress addr = (InterfaceAddress) i.next();
+        for (InterfaceAddress addr : iFace.getInterfaceAddresses()) {
             if (addr == null) {
                 continue;
             }
