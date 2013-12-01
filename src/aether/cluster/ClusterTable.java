@@ -115,7 +115,7 @@ public class ClusterTable {
         Iterator<Integer> it = keys.iterator();
         
         while (it.hasNext()) {
-            System.out.print(table.get(it.next()).toString());
+            System.out.println(table.get(it.next()).toString());
         }
     }
     
