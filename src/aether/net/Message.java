@@ -81,6 +81,24 @@ public class Message implements Serializable {
     
     
     
+    /** 
+     * The forth type of constructor which is for control messages. You need
+     * the message type as well as subtype.
+     * @param   messageType Type of the message
+     * @param   subtype Subtype of the message (for control messages)
+     * @param   destId Destination id
+     * @param   dest Destination IP address
+     */
+    public Message (char messageType, char[] payload, char subtype, int destId, 
+            InetAddress dest) {
+        
+        
+        int sourceId = ConfigMgr.getNodeId();
+        header = new Header(messageType, subtype, sourceId, destId, dest);
+        this.payload = new Payload(payload);
+    }
+    
+    
     
     /**
      * Create a message with messageType, subType, destination id, and 
