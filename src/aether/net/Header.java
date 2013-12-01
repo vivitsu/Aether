@@ -32,7 +32,7 @@ public class Header implements Serializable {
         
         messageType = type;
         messageSubtype = 'i';       // invalid
-        sourceIp = getLocalIp();
+        sourceIp = NetMgr.getLocalIp();
     }
     
     /**
@@ -50,7 +50,7 @@ public class Header implements Serializable {
         messageType = type;
         messageSubtype = subtype;
         this.source = source;
-        sourceIp = getLocalIp();
+        sourceIp = NetMgr.getLocalIp();
         this.dest = destId;
         destIp = dest;
     }
@@ -123,23 +123,5 @@ public class Header implements Serializable {
         return source;
     }
     
-    
-    /**
-     * Get the IP address of the localhost, wrap around getLocalHost() to
-     * handle the exception.
-     * 
-     * @return IP address of the local host
-     */
-    private InetAddress getLocalIp () {
-        
-        try {
-            return InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            System.err.println("[ERROR]: Unable to get the local IP "
-                    + "address");
-        }
-        
-        return null;
-        
-    }
+
 }
