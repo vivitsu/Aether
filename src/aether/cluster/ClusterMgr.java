@@ -278,6 +278,7 @@ public class ClusterMgr implements Runnable {
         ClusterTableRecord tempNodeRec = null;
         Integer tempNodeId = null;
         
+        
         try {
 
             while (numAttempts > 0 && success == false) {
@@ -314,10 +315,10 @@ public class ClusterMgr implements Runnable {
                         break;
                         // nothing to do here. This means we missed a reply
                     }
+                }
 
-                    if (replyList.size() == numNodes) {
-                        success = true;
-                    }
+                if (replyList.size() == numNodes) {
+                    success = true;
                 }
 
                 numAttempts--;
@@ -518,6 +519,7 @@ public class ClusterMgr implements Runnable {
             s = recStr + ";" + s;
         }
         
+        System.out.println(" --- " + s);
         return s.toCharArray();
     }
     
