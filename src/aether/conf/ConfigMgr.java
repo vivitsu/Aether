@@ -58,7 +58,7 @@ public class ConfigMgr {
             
             InetAddress myIp = NetMgr.getLocalIp();
             String ipString = myIp.toString();
-            String properIp = ipString.replaceFirst(".*/", "");;
+            String properIp = ipString.replaceFirst(".*/", "");
             configDict.put("localIp", properIp);
             
             
@@ -154,5 +154,22 @@ public class ConfigMgr {
         }
         Integer i = Integer.parseInt(s);
         return i.intValue();
+    }
+    
+    
+    
+    /**
+     * Check if debug logging is enabled
+     * @return  boolean true of debug logging is required
+     */
+    public static boolean getIfDebug () {
+        String s = configDict.get("debugLogging");
+        if (s == null) {
+            return false;
+        }
+        if (s.equalsIgnoreCase("true")) {
+            return true;
+        }
+        return false;
     }
 }
