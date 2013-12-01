@@ -346,8 +346,9 @@ public class ClusterMgr implements Runnable {
                  */
                 char[] joinPayload = prepareJoinMessagePayload();
                 ControlMessage joinMessage = new ControlMessage('j',
-                        mReq.getSourceIp(), joinPayload);
+                        mReq.getSourceIp(), tempNodeId, joinPayload);
                 log.fine("Sending join message 'j' to the new node");
+                System.out.println(" --- " + joinPayload.toString());
                 comm.send(joinMessage);
             }
             
@@ -519,7 +520,6 @@ public class ClusterMgr implements Runnable {
             s = recStr + ";" + s;
         }
         
-        System.out.println(" --- " + s);
         return s.toCharArray();
     }
     
@@ -593,7 +593,7 @@ public class ClusterMgr implements Runnable {
                 m = comm.receive();
                 processMessage (m);
             } catch (SocketTimeoutException to) {
-                log.fine("Socket timeout");
+                log.finer("Socket timeout");
                 // nothing needs to be done here
             } catch (IOException ex) {
                 log.severe("IOException while listening on socket");
