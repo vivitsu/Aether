@@ -4,11 +4,13 @@
  */
 package aether.net;
 
+import java.io.Serializable;
+
 /**
  *
  * @author aniket
  */
-public class Payload {
+public class Payload implements Serializable {
     
     private char[] data;
     
