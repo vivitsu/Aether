@@ -116,8 +116,9 @@ public class NetMgr {
                 datagramPayload.length, m.getDestIp(), port);
         
         
-        log.log(Level.INFO, "Sending {0} bytes to node {1} port: {2}", 
-                new Object[]{ datagramPayload.length, m.getDestIp().toString(), 
+        log.log(Level.FINE, "Sending {0} bytes to node {1} port: {2}", 
+                new Object[]{ datagramPayload.length, 
+                    m.getDestIp().toString().replaceFirst(".*/", ""), 
                     port});
         socket.send(packet);
     }
