@@ -11,6 +11,10 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 
 /**
@@ -31,7 +35,20 @@ public class ClusterMgr implements Runnable {
     private int nodeId;
     private int nodeIdCounter;
     private HashMap<Integer,ClusterTableRecord> tempRecs = new HashMap<>();
+    private boolean dbg;
+    private static final Logger log = 
+            Logger.getLogger(ClusterMgr.class.getName());
     
+    
+    
+    
+    static {
+        log.setLevel(Level.INFO);
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new SimpleFormatter());
+        handler.setLevel(Level.ALL);
+        log.addHandler(handler);
+    }
     
     /**
      * @throws UnsupportedOperationException if one clusterMgr is already
@@ -41,12 +58,17 @@ public class ClusterMgr implements Runnable {
     public ClusterMgr () throws UnsupportedOperationException, SocketException {
         
         if (isOne) {
+            log.warning("Cluster manager is already running");
             throw new UnsupportedOperationException();
         } else {
             nodeIdCounter = 0;
             clusterTable = new ClusterTable();
             init();
             isOne = true;
+            if (ConfigMgr.getIfDebug()) {
+                log.info("Setting log level to fine");
+                log.setLevel(Level.FINE);
+            }
         }
     }
 
@@ -59,6 +81,7 @@ public class ClusterMgr implements Runnable {
         clusterPort = ConfigMgr.getClusterPort();
         comm = new NetMgr (clusterPort);
         comm.setTimeout(5000);
+        log.fine("Initialized ClusterMgr");
     }
     
     
@@ -71,14 +94,24 @@ public class ClusterMgr implements Runnable {
         clusterTable.printTable();
     }
     
+    
+    
+    
     /**
      * Broadcast the discovery message in the cluster for the purpose of joining
      * the cluster
      * @throws IOException 
      */
     private void broadcastDiscovery () throws IOException {
-        ControlMessage discovery = new ControlMessage ('d',
-                NetMgr.getBroadcastAddr());
+        
+        log.fine("Broadcasting discovery message 'd'");
+        InetAddress bAddr = NetMgr.getBroadcastAddr();
+        
+        if (bAddr == null) {
+            log.severe("Unable to get broadcast addr");
+        }
+        
+        ControlMessage discovery = new ControlMessage ('d', bAddr);
         comm.send(discovery);
     }
     
@@ -94,18 +127,22 @@ public class ClusterMgr implements Runnable {
          * response and initiate cluster joining mechanism.
          */
         
+        log.fine("Processing the discovery response 'r'");
         int contactId = r.getSourceId();
         InetAddress contactIp = r.getSourceIp();
+        
+        log.log(Level.FINER, "Contact node IP: {0}, node Id: {1}", 
+                new Object[]{contactIp.toString(), contactId});
         
         /* Send the 'I-want-to-join' message to the contact node
          * Then wait for its response
          */
         ControlMessage d2 = new ControlMessage ('m', contactIp);
-        try {        
+        try {
+            log.fine("Sending membership request 'm'");
             comm.send(d2);
         } catch (IOException ex) {
-            System.err.println("[ERROR]: Sending the 'membership request' "
-                    + "message failed");
+            log.severe("Sending membership request failed");
             ex.printStackTrace();
         }
     }
@@ -123,10 +160,15 @@ public class ClusterMgr implements Runnable {
      *      cluster table.
      */
     private void processJoinMessage (Message j) throws IllegalStateException {
+        
+        
+        log.fine("Processing join (admittance) message 'j'");
+        
         ControlMessage join = (ControlMessage) j;
         nodeId = join.getDestId();
         ConfigMgr.setNodeId(nodeId);
         
+        log.log(Level.FINE, "My node id:{0}", nodeId);
         
         /* Now we need to update our cluster table by parsing the data in
          * the payload of the control message.
@@ -134,13 +176,19 @@ public class ClusterMgr implements Runnable {
         ClusterTableRecord[] recs;
         try {
             recs = join.parseJControl();
+            
         } catch (UnknownHostException ex) {
-            System.err.println("[ERROR]: Could not parse string to create IP");
+            /* Unknown host means parsing of the IP address failed. We could not
+             * resolve the IP string to get the InetAddress. There is no way to
+             * recover from this
+             */
+            log.severe("UnknownHostException while parsing IP String");
             throw new IllegalStateException();
+            
         } catch (UnsupportedOperationException ex) {
-            System.err.println("[ERROR]: Tried parsing non-join message for"
-                    + " cluster table records");
-            throw new IllegalStateException();
+            
+            log.warning("Attempt to parse non-join message in wrong manner");
+            return;
         }
         
         for (ClusterTableRecord rec:recs) {
@@ -160,14 +208,20 @@ public class ClusterMgr implements Runnable {
      * @param d     Discovery message by the new node.
      */
     private void processDiscovery (Message d) {
+        
+        log.fine("Processing discovery message by new node 'd'");
+        
         try {
             ControlMessage disc = (ControlMessage) d;
             InetAddress newNodeIp = disc.getSourceIp();
+            
+            log.log(Level.FINER, "New node IP: {0}", newNodeIp.toString());
             ControlMessage r = new ControlMessage('r', newNodeIp);
+            log.fine("Sending discovery response 'r'");
             comm.send((Message)r);
+            
         } catch (IOException ex) {
-            System.err.println("[ERROR]: Could not respond to discovery "
-                    + "message");
+            log.warning("Could not send discovery response");
         }
     }
     
@@ -184,13 +238,18 @@ public class ClusterMgr implements Runnable {
      */
     private boolean processJoinResponseMessage (Message m) {
         
+        log.fine("Processing join request reply from the cluster 'a'");
         ControlMessage reply = (ControlMessage) m;
+        
         if (reply == null || reply.getMessageSubtype() != 'a') {
+            log.fine("Reply from cluster: Failed");
             return false;
         }
         if (reply.parseAControl().equalsIgnoreCase("accept")) {
+            log.fine("Reply from cluster: Passed");
             return true;
         }
+        log.fine("Reply from cluster: Failed");
         return false;
     }
     
@@ -207,6 +266,8 @@ public class ClusterMgr implements Runnable {
      * @param d     Membership request message
      */
     private void processMembershipRequest (Message d) {
+        
+        log.fine("Processing membership request from the new node 'm'");
   
         ControlMessage mReq = (ControlMessage) d;
         // find total nodes in the cluster
@@ -221,13 +282,16 @@ public class ClusterMgr implements Runnable {
 
             while (numAttempts > 0 && success == false) {
 
-                tempNodeId = ++nodeIdCounter;
                 
+                tempNodeId = ++nodeIdCounter;
+                log.log(Level.FINER, "Attempt {0}, Temp node id {1}", 
+                        new Object[]{numAttempts, tempNodeId});
                 tempNodeRec = new ClusterTableRecord (
                         tempNodeId, mReq.getSourceIp());
                 
                 char[] payload = tempNodeRec.toDelimitedString().toCharArray();
 
+                log.fine("Sending membership proposal 'p'");
                 ControlMessage joinInfo = new ControlMessage('p',
                         NetMgr.getBroadcastAddr(), payload);
 
@@ -241,10 +305,13 @@ public class ClusterMgr implements Runnable {
                     try {
                         Message reply = comm.receive();
                         if (processJoinResponseMessage(reply)) {
+                            log.fine("Received positive reply from cluster");
                             replyList.add(reply);
                         }
                         
                     } catch (SocketTimeoutException soe) {
+                        log.fine("Timeout waiting for reply");
+                        break;
                         // nothing to do here. This means we missed a reply
                     }
 
@@ -265,6 +332,8 @@ public class ClusterMgr implements Runnable {
                     char[] load = tempNodeId.toString().toCharArray();
                     ControlMessage commit = new ControlMessage('c',
                         NetMgr.getBroadcastAddr(), load);
+                    
+                    log.fine("Sending commit message 'c'");
                     comm.send(commit);
                     clusterTable.insertRecord(tempNodeRec);
                 }
@@ -277,12 +346,12 @@ public class ClusterMgr implements Runnable {
                 char[] joinPayload = prepareJoinMessagePayload();
                 ControlMessage joinMessage = new ControlMessage('j',
                         mReq.getSourceIp(), joinPayload);
+                log.fine("Sending join message 'j' to the new node");
                 comm.send(joinMessage);
             }
             
         } catch (IOException ioe) {
-            System.err.println("[ERROR]: Could not process membership "
-                    + "request");
+            log.warning("Could not process membership request 'm'");
             ioe.printStackTrace();
         }
         
@@ -300,6 +369,7 @@ public class ClusterMgr implements Runnable {
      */
     private void processMembershipProposal (Message m) {
         
+        log.fine("Processing membership proposal 'p'");
         ControlMessage p = (ControlMessage) m;
         String response;
         ClusterTableRecord tempRec = null;
@@ -318,6 +388,7 @@ public class ClusterMgr implements Runnable {
             response = "deny";
         }
         
+        log.log(Level.FINE, "Sending reply {0} 'a'", response);
         ControlMessage reply = new ControlMessage ('a', p.getSourceIp(),
                 response.toCharArray());
         
@@ -325,6 +396,7 @@ public class ClusterMgr implements Runnable {
             comm.send(reply);
         } catch (IOException e) {
             // do nothing. The contact node will timeout and try again.
+            log.warning("Sending membership reply 'a' failed");
             return;
         }
         
@@ -344,14 +416,15 @@ public class ClusterMgr implements Runnable {
      */
     private void processMembershipCommit (Message m) {
         
+        log.fine("Processing membership commit 'c'");
+        
         ControlMessage c = (ControlMessage) m;
         Integer newNodeId = c.parseCControl();
         
         ClusterTableRecord toInsert = tempRecs.get(newNodeId);
         if (toInsert == null) {
             // something went wrong
-            System.err.println("[ERROR]: Could not find matching temp record"
-                    + " for the commit message. tempNodeId: " + newNodeId);
+            log.severe("Could not find matching temp record for commit");
         } else {
             clusterTable.insertRecord(toInsert);
             tempRecs.remove(newNodeId);
@@ -372,8 +445,10 @@ public class ClusterMgr implements Runnable {
      */
     private void processMessage (Message m) throws IllegalStateException {
         
+        log.fine("Processing control message");
         ControlMessage ctrl = (ControlMessage) m;
         char ctrlType = ctrl.getMessageSubtype();
+        
         
         switch (ctrlType) {
             
@@ -429,6 +504,7 @@ public class ClusterMgr implements Runnable {
      */
     private char[] prepareJoinMessagePayload () {
         
+        log.fine("Preparing to send the cluster table");
         ClusterTableRecord[] tableRecs = clusterTable.getAllRecords();
         String[] recStrings = new String[tableRecs.length];
         
@@ -459,6 +535,8 @@ public class ClusterMgr implements Runnable {
                 ConfigMgr.getLocalIp());
         clusterTable.insertRecord(myRecord);
         ConfigMgr.setNodeId(nodeId);
+        log.fine("Initialized new cluster table");
+        clusterTable.printTable();
     }
     
     
@@ -471,6 +549,8 @@ public class ClusterMgr implements Runnable {
         /* First thing we are supposed to do is to broadcast a discovery message
          * to the cluster.
          */
+        
+        log.info("Starting cluster manager");
         
         try {
             broadcastDiscovery();
@@ -492,11 +572,11 @@ public class ClusterMgr implements Runnable {
              */
             initTable();
         } catch (IOException ex) {
-            System.err.println("[ERROR]: Cluster discovery failed");
+            log.severe("ClusterMgr exiting as the cluster discovery failed");
             ex.printStackTrace();
+            return;
         } catch (IllegalStateException badState) {
-            System.err.println("[ERROR]: Cluster manager exiting due to "
-                    + "inconsistent state");
+            log.severe("ClusterMgr exiting due to inconsistent state");
             return;
         }
         
@@ -511,9 +591,11 @@ public class ClusterMgr implements Runnable {
                 m = comm.receive();
                 processMessage (m);
             } catch (SocketTimeoutException to) {
+                log.fine("Socket timeout");
                 // nothing needs to be done here
             } catch (IOException ex) {
-                System.err.println("[ERROR]: could not listen on the socket");
+                log.severe("IOException while listening on socket");
+                ex.printStackTrace();
                 return;
             }
             
