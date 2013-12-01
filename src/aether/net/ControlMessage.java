@@ -68,6 +68,12 @@ public class ControlMessage extends Message {
     }
     
     
+    public ControlMessage (char subtype, InetAddress dest, int destId,
+            char[] payload) {
+        super('c', payload, subtype, destId, dest);
+    }
+    
+    
     
     
     /**
