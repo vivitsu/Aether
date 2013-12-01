@@ -12,11 +12,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.Iterator;
 
 /**
  *
@@ -172,5 +172,30 @@ public class NetMgr {
         }
         return null;
         
+    }
+    
+    
+    public static InetAddress getLocalIp () {
+        
+        NetworkInterface iFace;
+        try {
+            iFace = NetworkInterface.getByName(interfaceName);
+            if (iFace.isLoopback() || (! iFace.isUp()) ) {
+                return null;
+            }
+        } catch (SocketException e) {
+            System.err.println("[ERROR]: could not find the interface");
+            return null;
+        }
+        
+        for (InterfaceAddress addr : iFace.getInterfaceAddresses()) {
+            if (addr == null || addr.getAddress() instanceof Inet6Address) {
+                continue;
+            } else {
+                return addr.getAddress();
+            }
+            
+        }
+        return null;
     }
 }
