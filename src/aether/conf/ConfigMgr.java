@@ -1,6 +1,7 @@
 
 package aether.conf;
 
+import aether.net.NetMgr;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -13,7 +14,7 @@ public class ConfigMgr {
     
     
     private static HashMap<String,String> configDict = 
-            new HashMap<>();
+            new HashMap<String,String>();
 
     
     
@@ -54,10 +55,14 @@ public class ConfigMgr {
          * here 
          */
         try {
-            InetAddress myIp = InetAddress.getLocalHost();
-            configDict.put("localIp", myIp.toString());
             
-        } catch (UnknownHostException ex) {
+            InetAddress myIp = NetMgr.getLocalIp();
+            String ipString = myIp.toString();
+            String properIp = ipString.replaceFirst(".*/", "");;
+            configDict.put("localIp", properIp);
+            
+            
+        } catch (Exception ex) {
             System.err.println("[ERROR]: ConfigMgr could not find local "
                     + "IP address");
             ex.printStackTrace();
@@ -102,6 +107,7 @@ public class ConfigMgr {
             ip = InetAddress.getByName(configDict.get("localIp"));
         } catch (UnknownHostException ex) {
             System.err.println("[ERROR]: Could not get local IP");
+            ex.printStackTrace();
         }
         return ip;
     }
