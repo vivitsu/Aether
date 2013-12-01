@@ -4,6 +4,7 @@
  */
 package aether.net;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -11,7 +12,7 @@ import java.net.UnknownHostException;
  *
  * @author aniket
  */
-public class Header {
+public class Header implements Serializable {
     
     private char messageType;       // data or control
     private int source;             // source identifier
