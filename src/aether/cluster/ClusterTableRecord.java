@@ -57,7 +57,7 @@ public class ClusterTableRecord {
     @Override
     public String toString () {
         String recordString = "Node Id = " + nodeIdentifier + ", Node IP = " 
-                + nodeIp.toString();
+                + nodeIp.toString().replaceFirst(".*/", "");
         return recordString;
     }
     
