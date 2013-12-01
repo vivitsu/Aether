@@ -149,9 +149,9 @@ public class NetMgr {
         
         Message m = null;
         try {
-            log.log(Level.FINE, "Recceived {0} bytes from node {1}", 
+            log.log(Level.FINE, "Received {0} bytes from node {1}", 
                     new Object[]{dResponse.getLength(),
-                        dResponse.getSocketAddress().toString()});
+              dResponse.getSocketAddress().toString().replaceFirst(".*/", "")});
             
             byte[] dataCopy = Arrays.copyOf(dResponse.getData(), 
                         dResponse.getLength());
