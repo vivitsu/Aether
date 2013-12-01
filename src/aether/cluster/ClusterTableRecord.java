@@ -70,7 +70,8 @@ public class ClusterTableRecord {
     public String toDelimitedString () {
         
         Integer id = nodeIdentifier;
-        String deRec = id.toString() + "%" + nodeIp.toString();
+        String deRec = id.toString() + "%" + 
+                nodeIp.toString().replaceFirst(".*/", "");
         return deRec;
     }
 }
