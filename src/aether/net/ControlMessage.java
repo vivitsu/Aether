@@ -133,7 +133,7 @@ public class ControlMessage extends Message {
      */
     public String parseAControl () {
         
-        return payload.getData().toString();
+        return payload.getData();
     }
     
     
@@ -146,7 +146,7 @@ public class ControlMessage extends Message {
      */
     public ClusterTableRecord parsePControl () throws UnknownHostException {
         
-        String newNodeRecString = payload.getData().toString();
+        String newNodeRecString = payload.getData();
         String[] tokens = newNodeRecString.split("%");
         int id = Integer.parseInt(tokens[0]);
         InetAddress ip = InetAddress.getByName(tokens[1]);
@@ -163,6 +163,6 @@ public class ControlMessage extends Message {
      */
     public Integer parseCControl () {
         
-        return Integer.parseInt(payload.toString());
+        return Integer.parseInt(payload.getData());
     }
 }

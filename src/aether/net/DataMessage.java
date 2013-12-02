@@ -18,7 +18,7 @@ public class DataMessage extends Message {
      * @param data Array of characters holding the data to be transfered
      * @see Message
      */
-    public DataMessage (char[] data) {
+    public DataMessage (String data) {
         
         super('d', data);       
     }
@@ -29,7 +29,7 @@ public class DataMessage extends Message {
      * 
      * @return  The array of characters holding the data
      */
-    public char[] getDataPayload () {
+    public String getDataPayload () {
         return payload.getData();
     }
 }
