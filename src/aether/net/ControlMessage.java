@@ -101,20 +101,23 @@ public class ControlMessage extends Message {
             throw new UnsupportedOperationException();
         }
         
-        ClusterTableRecord[] recArray = new ClusterTableRecord[0];
+        
         String data = payload.getData();
         
         String tableString = data;
         /* Separate the hashtable records by spliting on the record separator */
         String[] records = tableString.split(";");
+        ClusterTableRecord[] recArray = new ClusterTableRecord[records.length];
         
-        for (String record: records) {
+        //for (String record: records) {
+        for (int i=0; i < recArray.length; i++) {
             /* Split the record to separate key and values */
+            String record = records[i];
             String[] tokens = record.split("%");
             int id = Integer.parseInt(tokens[0]);
             InetAddress ip = InetAddress.getByName(tokens[1]);
             ClusterTableRecord rec = new ClusterTableRecord (id, ip);
-            recArray[recArray.length] = rec;
+            recArray[i] = rec;
         }
         
         return recArray;
