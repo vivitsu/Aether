@@ -352,12 +352,15 @@ public class ClusterMgr implements Runnable {
                  */
                 if (tempNodeRec != null && tempNodeId != null) {
                     
-                    String load = tempNodeId.toString();
-                    ControlMessage commit = new ControlMessage('c',
-                        NetMgr.getBroadcastAddr(), load);
+                    if (numNodes > 0) {
+                        String load = tempNodeId.toString();
+                        ControlMessage commit = new ControlMessage('c',
+                                NetMgr.getBroadcastAddr(), load);
+
+                        log.fine("Sending commit message 'c'");
+                        comm.send(commit);
+                    }
                     
-                    log.fine("Sending commit message 'c'");
-                    comm.send(commit);
                     clusterTable.insertRecord(tempNodeRec);
                     printClusterView();
                 }
