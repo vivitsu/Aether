@@ -12,7 +12,7 @@ import java.io.Serializable;
  */
 public class Payload implements Serializable {
     
-    private char[] data;
+    private String data;
     
     
     /**
@@ -22,16 +22,16 @@ public class Payload implements Serializable {
      * 
      * @param data  Array of characters holding the payload to be transfered.
      */
-    public Payload (char[] data) {
+    public Payload (String data) {
         
-        this.data = data.clone();
+        this.data = data;
     }
     
     /**
      * Get the data in the payload
      * @return  Data in the payload
      */
-    public char[] getData () {
+    public String getData () {
         return data;
     }
 }

@@ -39,7 +39,7 @@ public class Message implements Serializable {
      * @param   data    Array of characters holding the data
      */
     
-    public Message (char messageType, char[] data) {
+    public Message (char messageType, String data) {
         
         header = new Header(messageType);
         payload = new Payload (data);
@@ -54,7 +54,7 @@ public class Message implements Serializable {
      * @param   data    Array of characters holding the data
      * @param   subtype Subtype of the message (for control messages)
      */
-    public Message (char messageType, char[] data, char subtype,
+    public Message (char messageType, String data, char subtype,
             InetAddress dest) {
         
         int sourceId = ConfigMgr.getNodeId();
@@ -89,7 +89,7 @@ public class Message implements Serializable {
      * @param   destId Destination id
      * @param   dest Destination IP address
      */
-    public Message (char messageType, char[] payload, char subtype, int destId, 
+    public Message (char messageType, String payload, char subtype, int destId, 
             InetAddress dest) {
         
         

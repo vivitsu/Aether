@@ -290,7 +290,7 @@ public class ClusterMgr implements Runnable {
                 tempNodeRec = new ClusterTableRecord (
                         tempNodeId, mReq.getSourceIp());
                 
-                char[] payload = tempNodeRec.toDelimitedString().toCharArray();
+                String payload = tempNodeRec.toDelimitedString();
 
                 log.fine("Sending membership proposal 'p'");
                 ControlMessage joinInfo = new ControlMessage('p',
@@ -330,7 +330,7 @@ public class ClusterMgr implements Runnable {
                  */
                 if (tempNodeRec != null && tempNodeId != null) {
                     
-                    char[] load = tempNodeId.toString().toCharArray();
+                    String load = tempNodeId.toString();
                     ControlMessage commit = new ControlMessage('c',
                         NetMgr.getBroadcastAddr(), load);
                     
@@ -344,11 +344,10 @@ public class ClusterMgr implements Runnable {
                 /* Now we need to tell the new node that it has been admitted
                  * in the cluster
                  */
-                char[] joinPayload = prepareJoinMessagePayload();
+                String joinPayload = prepareJoinMessagePayload();
                 ControlMessage joinMessage = new ControlMessage('j',
                         mReq.getSourceIp(), tempNodeId, joinPayload);
                 log.fine("Sending join message 'j' to the new node");
-                System.out.println(" --- " + joinPayload.toString());
                 comm.send(joinMessage);
             }
             
@@ -392,7 +391,7 @@ public class ClusterMgr implements Runnable {
         
         log.log(Level.FINE, "Sending reply {0} 'a'", response);
         ControlMessage reply = new ControlMessage ('a', p.getSourceIp(),
-                response.toCharArray());
+                response);
         
         try {
             comm.send(reply);
@@ -504,7 +503,7 @@ public class ClusterMgr implements Runnable {
      * cluster table in character form.
      * @return  char array having all the records in cluster table
      */
-    private char[] prepareJoinMessagePayload () {
+    private String prepareJoinMessagePayload () {
         
         log.fine("Preparing to send the cluster table");
         ClusterTableRecord[] tableRecs = clusterTable.getAllRecords();
@@ -520,7 +519,7 @@ public class ClusterMgr implements Runnable {
             s = recStr + ";" + s;
         }
         
-        return s.toCharArray();
+        return s;
     }
     
     

@@ -62,14 +62,14 @@ public class ControlMessage extends Message {
     
     
     
-    public ControlMessage (char subtype, InetAddress dest, char[] payload) {
+    public ControlMessage (char subtype, InetAddress dest, String payload) {
         
         super('c', payload, subtype, dest);
     }
     
     
     public ControlMessage (char subtype, InetAddress dest, int destId,
-            char[] payload) {
+            String payload) {
         super('c', payload, subtype, destId, dest);
     }
     
@@ -102,9 +102,9 @@ public class ControlMessage extends Message {
         }
         
         ClusterTableRecord[] recArray = new ClusterTableRecord[0];
-        char[] data = payload.getData();
+        String data = payload.getData();
         
-        String tableString = data.toString();
+        String tableString = data;
         /* Separate the hashtable records by spliting on the record separator */
         String[] records = tableString.split(";");
         

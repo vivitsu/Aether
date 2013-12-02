@@ -156,6 +156,7 @@ public class NetMgr {
             byte[] dataCopy = Arrays.copyOf(dResponse.getData(), 
                         dResponse.getLength());
             m = deserializeMessage(dataCopy);
+            
         } catch (ClassNotFoundException ex) {
             log.warning("Error retrieving message from the datagram");
             ex.printStackTrace();
