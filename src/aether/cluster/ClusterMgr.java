@@ -38,6 +38,7 @@ public class ClusterMgr implements Runnable {
     private boolean dbg;
     private static final Logger log = 
             Logger.getLogger(ClusterMgr.class.getName());
+    private int runLevel = 0;
     
     
     
@@ -113,6 +114,7 @@ public class ClusterMgr implements Runnable {
         
         ControlMessage discovery = new ControlMessage ('d', bAddr);
         comm.send(discovery);
+        runLevel = 1;
     }
     
     
@@ -126,8 +128,11 @@ public class ClusterMgr implements Runnable {
         /* Not implemented yet. Here we need to processes the discovery
          * response and initiate cluster joining mechanism.
          */
-        
+        if (runLevel > 1) {
+            return;
+        }
         log.fine("Processing the discovery response 'r'");
+        
         int contactId = r.getSourceId();
         InetAddress contactIp = r.getSourceIp();
         
@@ -145,6 +150,8 @@ public class ClusterMgr implements Runnable {
             log.severe("Sending membership request failed");
             ex.printStackTrace();
         }
+        
+        runLevel = 2;
     }
     
     
@@ -161,6 +168,9 @@ public class ClusterMgr implements Runnable {
      */
     private void processJoinMessage (Message j) throws IllegalStateException {
         
+        if (runLevel > 2) {
+            return;
+        }
         
         log.fine("Processing join (admittance) message 'j'");
         
@@ -196,6 +206,7 @@ public class ClusterMgr implements Runnable {
         }
         
         printClusterView();
+        runLevel = 3;
     }
     
     
@@ -208,6 +219,10 @@ public class ClusterMgr implements Runnable {
      * @param d     Discovery message by the new node.
      */
     private void processDiscovery (Message d) {
+        
+        if (runLevel < 3) {
+            return;
+        }
         
         log.fine("Processing discovery message by new node 'd'");
         
@@ -266,6 +281,10 @@ public class ClusterMgr implements Runnable {
      * @param d     Membership request message
      */
     private void processMembershipRequest (Message d) {
+        
+        if (runLevel < 3) {
+            return;
+        }
         
         log.fine("Processing membership request from the new node 'm'");
   
@@ -370,6 +389,10 @@ public class ClusterMgr implements Runnable {
      */
     private void processMembershipProposal (Message m) {
         
+        if (runLevel < 3) {
+            return;
+        }
+        
         log.fine("Processing membership proposal 'p'");
         ControlMessage p = (ControlMessage) m;
         String response;
@@ -416,6 +439,10 @@ public class ClusterMgr implements Runnable {
      * @param m     Membership commit control message
      */
     private void processMembershipCommit (Message m) {
+        
+        if (runLevel < 3) {
+            return;
+        }
         
         log.fine("Processing membership commit 'c'");
         
