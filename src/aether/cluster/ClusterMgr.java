@@ -115,6 +115,7 @@ public class ClusterMgr implements Runnable {
         ControlMessage discovery = new ControlMessage ('d', bAddr);
         comm.send(discovery);
         runLevel = 1;
+        log.fine("Setting the run level to 1");
     }
     
     
@@ -152,6 +153,7 @@ public class ClusterMgr implements Runnable {
         }
         
         runLevel = 2;
+        log.fine("Setting the run level to 2");
     }
     
     
@@ -207,6 +209,7 @@ public class ClusterMgr implements Runnable {
         
         printClusterView();
         runLevel = 3;
+        log.fine("Setting the run level to 3");
     }
     
     
@@ -356,6 +359,7 @@ public class ClusterMgr implements Runnable {
                     log.fine("Sending commit message 'c'");
                     comm.send(commit);
                     clusterTable.insertRecord(tempNodeRec);
+                    printClusterView();
                 }
                 
                 
@@ -456,6 +460,7 @@ public class ClusterMgr implements Runnable {
         } else {
             clusterTable.insertRecord(toInsert);
             tempRecs.remove(newNodeId);
+            printClusterView();
         }
         
     }
@@ -564,7 +569,9 @@ public class ClusterMgr implements Runnable {
         clusterTable.insertRecord(myRecord);
         ConfigMgr.setNodeId(nodeId);
         log.fine("Initialized new cluster table");
-        clusterTable.printTable();
+        printClusterView();
+        runLevel = 3;
+        log.fine("Setting the run level to 3");
     }
     
     
