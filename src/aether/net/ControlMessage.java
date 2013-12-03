@@ -41,6 +41,9 @@ import java.net.UnknownHostException;
  *      After sending the commit message, the contact node sends a join message
  *      to the new node. In the payload, it has the list of nodes already 
  *      present in the cluster.
+ * 'e': Read request
+ *      Control message coming from the client requesting a particular file
+ *      mentioned in the payload.
  * 
  * @author aniket
  */
@@ -164,5 +167,19 @@ public class ControlMessage extends Message {
     public Integer parseCControl () {
         
         return Integer.parseInt(payload.getData());
+    }
+    
+    
+    /**
+     * Parse the control message with subtype 'e' to return the file name in the
+     * read request
+     * @return  file name for the read request
+     */
+    public String ParseEControl () {
+        
+        if (payload == null) {
+            return null;
+        }
+        return payload.getData();
     }
 }
