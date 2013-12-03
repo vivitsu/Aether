@@ -25,7 +25,8 @@ public class Replication {
 		// TODO Auto-generated method stub
 		HtbtBuddyMap hbm = new HtbtBuddyMap ();
 		try {
-			hbm.put(new Host (InetAddress.getLocalHost(), Replication.HTBT_RCV_PORT_NUMBER), null);
+			//hbm.put(new Host (InetAddress.getLocalHost(), Replication.HTBT_RCV_PORT_NUMBER), null);
+			hbm.put(new Host (InetAddress.getByName("192.168.0.10"), Replication.HTBT_RCV_PORT_NUMBER), null);
 			System.out.println(InetAddress.getLocalHost());
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -96,8 +97,7 @@ class HtbtSender implements Runnable {
 	public void run () {
 		DatagramSocket ds;
 		try {
-			ds = new DatagramSocket(Replication.HTBT_SND_PORT_NUMBER,
-					InetAddress.getLocalHost());
+			ds = new DatagramSocket(Replication.HTBT_SND_PORT_NUMBER);
 			byte[] send = new byte[256];
 			while (true) {
 
@@ -107,6 +107,7 @@ class HtbtSender implements Runnable {
 					send = mess.getBytes("UTF-8");
 					DatagramPacket dps = new DatagramPacket(send, send.length,
 							entry.getKey().getIPAddress(), entry.getKey().getPort());
+					System.out.println(entry.getKey().getIPAddress());
 					ds.send(dps);
 				}
 				System.out.println("Sent from sender");
@@ -139,8 +140,7 @@ class HtbtReceiver implements Runnable {
 	}
 	public void run () {
 		try {
-			DatagramSocket ds = new DatagramSocket(Replication.HTBT_RCV_PORT_NUMBER,
-					InetAddress.getLocalHost());				
+			DatagramSocket ds = new DatagramSocket(Replication.HTBT_RCV_PORT_NUMBER);				
 			byte[] receive = new byte[256];
 			DatagramPacket dpr = new DatagramPacket(receive, receive.length);
 			while (!Thread.currentThread().isInterrupted()) {
