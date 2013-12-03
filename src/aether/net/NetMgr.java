@@ -93,7 +93,7 @@ public class NetMgr {
      * @return  byte array containing the bytes of the object
      * @throws IOException 
      */
-    private byte[] serialize (Object m) throws IOException {
+    public byte[] serialize (Object m) throws IOException {
         ByteArrayOutputStream bOut = new ByteArrayOutputStream();
         ObjectOutputStream oOut = new ObjectOutputStream(bOut);
         oOut.writeObject(m);
@@ -173,7 +173,7 @@ public class NetMgr {
      * @throws IOException
      * @throws ClassNotFoundException 
      */
-    private Message deserializeMessage (byte[] bytes) throws IOException, 
+    public Message deserializeMessage (byte[] bytes) throws IOException, 
             ClassNotFoundException {
         Message m;
         log.log(Level.FINE, "Deserialized {0} bytes to extract a message",
@@ -190,7 +190,7 @@ public class NetMgr {
      * @throws IOException
      * @throws ClassNotFoundException 
      */
-    private Object deserialize (byte[] bytes) throws IOException, 
+    public Object deserialize (byte[] bytes) throws IOException, 
             ClassNotFoundException {
         ByteArrayInputStream bIn = new ByteArrayInputStream(bytes);
         ObjectInputStream oIn = new ObjectInputStream(bIn);
