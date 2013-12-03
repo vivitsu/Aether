@@ -39,7 +39,7 @@ public class ClusterMgr implements Runnable {
     private static final Logger log = 
             Logger.getLogger(ClusterMgr.class.getName());
     private int runLevel = 0;
-    
+    private static ClusterMgr instance;
     
     
     
@@ -52,6 +52,9 @@ public class ClusterMgr implements Runnable {
     }
     
     /**
+     * The ClusterMgr is a singleton. This constructor should not be used to 
+     * get an object. Use the method getInstance() instead
+     * 
      * @throws UnsupportedOperationException if one clusterMgr is already
      *          running
      * @throws SocketException if clusterMgr fails to get hold of its socket
@@ -60,7 +63,6 @@ public class ClusterMgr implements Runnable {
         
         if (isOne) {
             log.warning("Cluster manager is already running");
-            throw new UnsupportedOperationException();
         } else {
             nodeIdCounter = 0;
             clusterTable = new ClusterTable();
@@ -86,6 +88,23 @@ public class ClusterMgr implements Runnable {
     }
     
     
+    
+    /**
+     * Get the instance of the ClusterMgr. This method should be used to get
+     * the object of the clusterMgr instead of the constructor
+     * @return
+     * @throws UnsupportedOperationException
+     * @throws SocketException 
+     */
+    public static ClusterMgr getInstance () throws 
+            UnsupportedOperationException, SocketException {
+        
+        if (instance == null) {
+            return new ClusterMgr();
+        } else {
+            return instance;
+        }
+    }
     
     
     /**
