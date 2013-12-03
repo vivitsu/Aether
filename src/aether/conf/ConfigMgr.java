@@ -86,6 +86,19 @@ public class ConfigMgr {
     
     
     /**
+     * Get the configuration parameter identifying the port on which the 
+     * dataMgr listens for the connections from clients
+     * @return  Socket for the DataMgr
+     */
+    public static int getDataPort() {
+        
+        Integer port = Integer.parseInt(configDict.get("dataPort"));
+        return port.intValue();
+    }
+    
+    
+    
+    /**
      * Get the name of the interface we used for connecting to the cluster
      * @return  String containing the name of the network interface
      */
