@@ -459,7 +459,7 @@ public class ClusterMgr implements Runnable {
         ClusterTableRecord toInsert = tempRecs.get(newNodeId);
         if (toInsert == null) {
             // something went wrong
-            log.severe("Could not find matching temp record for commit");
+            log.warning("Could not find matching temp record for commit");
         } else {
             clusterTable.insertRecord(toInsert);
             tempRecs.remove(newNodeId);
