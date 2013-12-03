@@ -34,7 +34,7 @@ public class AetherNode {
         ConfigMgr.initConfig(configFile);
             
         try {
-            ClusterMgr clusterManager = new ClusterMgr();
+            ClusterMgr clusterManager = ClusterMgr.getInstance();
             Thread clusterMgrThread = new Thread(clusterManager);
             clusterMgrThread.start();
             
