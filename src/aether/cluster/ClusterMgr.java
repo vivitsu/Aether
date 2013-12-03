@@ -557,7 +557,7 @@ public class ClusterMgr implements Runnable {
      * cluster table in character form.
      * @return  char array having all the records in cluster table
      */
-    private String prepareJoinMessagePayload () {
+    public String prepareJoinMessagePayload () {
         
         log.fine("Preparing to send the cluster table");
         ClusterTableRecord[] tableRecs = clusterTable.getAllRecords();
