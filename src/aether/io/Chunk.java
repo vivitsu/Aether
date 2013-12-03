@@ -15,6 +15,25 @@ public class Chunk implements Serializable {
     private String filename;
     private int chunkId;
     private byte[] data;
+    private String chunkName;
+    
+    
+    /**
+     * Chunk class represents a chunk of the file which can be replicated.
+     * There is small metadata kept with each chunk which includes the filename,
+     * and the chunk id. The chunk is serializable hence can be sent easily over
+     * the network.
+     * @param file  The name of the file of which this is a chunk
+     * @param id    The id of the chunk. Unique in the file
+     * @param data  Actual file data of max size chunksize.
+     */
+    public Chunk (String file, int id, byte[] data) {
+        
+        filename = file;
+        chunkId = id;
+        this.data = data.clone();
+        chunkName = file + chunkId;
+    }
     
     
     
@@ -42,5 +61,23 @@ public class Chunk implements Serializable {
      */
     public int getDataLength () {
         return data.length;
+    }
+    
+    
+    /**
+     * Get the name of the chunk
+     * @return  Chunk name
+     */
+    public String getChunkName () {
+        return chunkName;
+    }
+    
+    
+    /**
+     * Retrieve the data bytes in this chunk
+     * @return  array of data bytes
+     */
+    public byte[] getData () {
+        return data;
     }
 }
