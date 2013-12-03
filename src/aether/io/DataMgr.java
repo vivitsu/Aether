@@ -22,7 +22,6 @@ public class DataMgr implements Runnable {
     
     private static boolean isOne = false;
     private int dataPort;
-    private boolean dbg;
     private static final Logger log = 
             Logger.getLogger(DataMgr.class.getName());
     private ServerSocket serv;
@@ -52,7 +51,9 @@ public class DataMgr implements Runnable {
             throw new UnsupportedOperationException();
         } else {
             fileChunkMap = new ConcurrentHashMap<>();
-            dbg = ConfigMgr.getIfDebug();
+            if (ConfigMgr.getIfDebug()) {
+                log.setLevel(Level.FINE);
+            }
             dataPort = ConfigMgr.getDataPort();
             init();
             isOne = true;
