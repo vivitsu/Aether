@@ -44,6 +44,12 @@ import java.net.UnknownHostException;
  * 'e': Read request
  *      Control message coming from the client requesting a particular file
  *      mentioned in the payload.
+ * 'w': Write request
+ *      Control message coming from the client for the write request. This 
+ *      message should be responded with an acknowledgment, after which the
+ *      file will be received from client. Payload will have the filename.
+ * 'k': Acknowledgment message
+ *      Control message for acknowledgment purpose. It might have a payload.
  * 
  * @author aniket
  */
@@ -180,6 +186,22 @@ public class ControlMessage extends Message {
         if (payload == null) {
             return null;
         }
+        return payload.getData();
+    }
+    
+    
+    
+    /**
+     * Parse the control message with subtype 'w' to return the file name that
+     * is to be written.
+     * @return 
+     */
+    public String parseWControl () {
+        
+        if (payload == null) {
+            return null;
+        }
+        
         return payload.getData();
     }
 }
