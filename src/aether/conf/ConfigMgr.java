@@ -185,4 +185,15 @@ public class ConfigMgr {
         }
         return false;
     }
+    
+    
+    
+    /**
+     * Get the size of each chunk
+     * @return  chunk size
+     */
+    public static int getChunkSize () {
+        Integer size = Integer.parseInt(configDict.get("chunkSize"));
+        return size.intValue();
+    }
 }
