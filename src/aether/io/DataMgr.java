@@ -91,7 +91,8 @@ public class DataMgr implements Runnable {
                     log.log(Level.FINE, "Starting a thread to communicate with"
                             + "the client on socket {0}", s);
                     ClientConnector cli = new ClientConnector (s, fileChunkMap);
-                    cli.run();
+                    Thread cliThread = new Thread(cli);
+                    cliThread.start();
                 }
                 
             } catch (IOException ex) {
