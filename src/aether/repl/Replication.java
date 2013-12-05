@@ -52,6 +52,45 @@ public class Replication {
 		*/
 	}
 }
+/**
+ * Stores the metadata of what chunks of which file 
+ * are stored at the current node in the cluster. 
+ * This is called when we get confirmation from 
+ * destination that the chunk has been received.
+ * */
+class FileChunkMetadata {
+	Map<String, ArrayList<Chunk>> fileChunkMap;
+	public FileChunkMetadata () {
+		fileChunkMap = new HashMap<String, ArrayList<Chunk>> ();
+	}
+	
+	public void addChunk (String f, Chunk c) {
+		ArrayList<Chunk> chunkList = fileChunkMap.get(f);
+		chunkList.add(c);
+	}
+	
+	public void removeChunk (String f,Chunk c) {
+		ArrayList<Chunk> chunkList = fileChunkMap.get(f);
+		chunkList.remove(c);
+	}
+	
+	public void removeFile (String f) {		
+		fileChunkMap.remove(f);
+	}	
+	public boolean doesChunkExists (String f) {
+		return fileChunkMap.containsKey(f);
+	}
+}
+/**
+ * This is the main class that performs the tasks as follows:
+ * 1. get the next chunk to be replicated from the queue
+ * 2. send a message over the network to get the available
+ * 		space at each node
+ * 3. select a node on which the chunk is to be replicated
+ * 4. create a task for replicating the chunk and execute it
+ * 5. send a confirmation message once the chunk has been 
+ * 		replicated 
+ * */
 class ChunkManager implements Runnable {
 	BlockingQueue chunkQueue;
 	Chunk[] chunkList;
@@ -61,16 +100,21 @@ class ChunkManager implements Runnable {
 	public ChunkManager (BlockingQueue b, ChunkSpaceMap c) {
 		csm = c;
 		chunkQueue = b;
-		exec = Executors.newFixedThreadPool(3);
+		exec = Executors.newFixedThreadPool(3);		
 	}
 	
 	public void run () {
 		while (!Thread.currentThread().isInterrupted()) {
 			Chunk c;
 			try {
+				
+				//remove from the queue
 				c = (Chunk)chunkQueue.take();
 				NodeSpace node = csm.getStorageNode(c.getDataLength());
 				ChunkReplicator cr = new ChunkReplicator (c, node.getIPAddress(), node.getPort());
+				
+				//TODO add the dest node as a chunk buddy 
+				//to maintain heartbeat with that node
 				
 				//replicate the chunk using a thread from the executor pool
 				exec.execute(cr);
@@ -103,6 +147,14 @@ class ChunkManager implements Runnable {
 		}
 	}
 }
+/**
+ * Performs the task of actual replication (sending
+ * bytes over the wire) to the destination. A task is 
+ * created and set as parameter to the executor 
+ * framework instance that contains a pool of threads
+ * which will execute the task as per the parameters
+ * that have been set for the object.
+ * */
 class ChunkReplicator implements Runnable {
 	Chunk chunk;	
 	InetAddress destIP;
