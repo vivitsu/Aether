@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.LinkedList;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +26,9 @@ public class AetherFileReader implements Runnable {
     /**
      * The node from where to request the chunk and the client node's external IP.
      */
-    InetAddress nodeIp, myIp;
+    InetAddress myIp;
+
+    LinkedList<String> nodeIps;
 
     /**
      * Port
@@ -60,10 +63,10 @@ public class AetherFileReader implements Runnable {
      * @param mIP    Client node's external IP
      * @param sChunk Shared chunk object between AetherClient and this thread
      */
-    public AetherFileReader(String fname, InetAddress ip, int prt, InetAddress mIP, Chunk sChunk) {
+    public AetherFileReader(String fname, Integer id, InetAddress ip, int prt, InetAddress mIP, Chunk sChunk, LinkedList<String> ll) {
 
-        filename = fname;
-        nodeIp = ip;
+        filename = fname + ":" + id.toString();
+        nodeIps = ll;
         myIp = mIP;
         port = prt;
         sharedChunk = sChunk;
@@ -129,13 +132,13 @@ public class AetherFileReader implements Runnable {
 
     /**
      * Creates a socket that binds to the client's external IP address and connects to the
-     * cluster node. Cluster node IP is specified by {@link #nodeIp} and client's external
+     * cluster node. Cluster node IP is specified by {@link #nodeIps} and client's external
      * IP is specified by {@link #myIp}
      *
      * @return Socket bound to client's external IP and connected to the cluster node
      * @throws IOException If socket creation fails
      */
-    public Socket connectToNode() throws IOException {
+    public Socket connectToNode(InetAddress nodeIp) throws IOException {
 
         Socket clusterSoc = new Socket(myIp, port);
         InetSocketAddress endpoint = new InetSocketAddress(nodeIp, port);
@@ -148,21 +151,37 @@ public class AetherFileReader implements Runnable {
     @Override
     public void run() {
 
-        try {
 
-            Socket socket = connectToNode();
-            getChunk(socket);
-            sharedChunk = dataChunk;
+        while (true) {
 
-        } catch (SocketTimeoutException e) {
+            try {
 
-            logger.log(Level.SEVERE, "Connection timed out");
-            e.printStackTrace();
+                InetAddress ip = InetAddress.getByName(nodeIps.pollFirst());
 
-        } catch (IOException e) {
+                if (ip != null) {
 
-            e.printStackTrace();
+                    Socket socket = connectToNode(ip);
+                    getChunk(socket);
+                    sharedChunk = dataChunk;
+
+                    return;
+
+                } else {
+
+                    throw new NullPointerException("Read failed for chunk " + filename + ". Could not connect to any node.");
+
+                }
+
+            } catch (SocketTimeoutException e) {
+
+                logger.log(Level.SEVERE, "Connection timed out");
+                e.printStackTrace();
+
+            } catch (IOException e) {
+
+
+                e.printStackTrace();
+            }
         }
-
     }
 }
