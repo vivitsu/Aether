@@ -50,6 +50,11 @@ import java.net.UnknownHostException;
  *      file will be received from client. Payload will have the filename.
  * 'k': Acknowledgment message
  *      Control message for acknowledgment purpose. It might have a payload.
+ * 'b': Chunk read request
+ *      Control message from client requesting a particular chunk
+ * 'l': Chunk Node list message
+ *      List of nodes and the chunks they are holding
+ * 
  * 
  * @author aniket
  */
@@ -194,14 +199,41 @@ public class ControlMessage extends Message {
     /**
      * Parse the control message with subtype 'w' to return the file name that
      * is to be written.
-     * @return 
+     * @return  filename
      */
     public String parseWControl () {
         
         if (payload == null) {
             return null;
         }
-        
+        return payload.getData();
+    }
+    
+    
+    /**
+     * Parse the control message with subtype 'b' to return the file name that
+     * is to be written.
+     * @return String having chunkId and the filename
+     */
+    public String parseBControl() {
+
+        if (payload == null) {
+            return null;
+        }
+        return payload.getData();
+    }
+    
+    
+    /**
+     * Parse the control message with subtype 'k' to return the data in the  
+     * payload. Parsing of the data is left to the caller
+     * @return Ack payload
+     */
+    public String parseKControl() {
+
+        if (payload == null) {
+            return null;
+        }
         return payload.getData();
     }
 }
