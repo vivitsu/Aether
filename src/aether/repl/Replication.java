@@ -9,9 +9,12 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+
 
 public class Replication {
 	public static int HTBT_SND_PORT_NUMBER = 34444;
@@ -23,7 +26,7 @@ public class Replication {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		HtbtBuddyMap hbm = new HtbtBuddyMap ();
+		/*HtbtBuddyMap hbm = new HtbtBuddyMap ();
 		try {
 			//hbm.put(new Host (InetAddress.getLocalHost(), Replication.HTBT_RCV_PORT_NUMBER), null);
 			hbm.put(new Host (InetAddress.getByName("192.168.0.10"), Replication.HTBT_RCV_PORT_NUMBER), null);
@@ -39,7 +42,95 @@ public class Replication {
 		HtbtReceiver r = new HtbtReceiver();
 		new Thread(r).start();
 
+		*/
+	}
+}
+class ChunkManager implements Runnable {
+	BlockingQueue chunkQueue;
+	public ChunkManager (BlockingQueue b) {
+		chunkQueue = b;
+	}
+	public void run () {
 		
+	}
+	public Object getNextChunk () {
+		return chunkQueue.remove();
+	}
+	public void addChunk (Object o) {
+		chunkQueue.add(o);
+	}	
+}
+class ChunkReplicator implements Runnable {
+	public ChunkReplicator () {
+		
+	}
+	public void run () {
+		
+	}
+}
+/**
+ * This exception is thrown when searching for a node
+ * with available space to store the file chunk. If 
+ * no node in the cluster has space for the file chunk,
+ * this exception is thrown. 
+ * */
+class NoSpaceAvailableException extends Exception {
+	public NoSpaceAvailableException () {
+		
+	}
+	public NoSpaceAvailableException (String message) {
+		super(message);
+	}
+	
+}
+class ChunkSpaceMap {
+	ArrayList<NodeSpace> freeMemory;
+	
+	/**
+	 * Get the node address details in the cluster where 
+	 * space is still available. The first fit algorithm 
+	 * is used. If no such node exists in the cluster, 
+	 * it throws an exception that should be handled by 
+	 * the calling code by reporting it to the user.
+	 * */
+	public NodeSpace getStorageNode (long spaceRequired) throws NoSpaceAvailableException {
+		
+		//iterate through the list and use the  
+		//first node where space is available.
+		for (Iterator<NodeSpace> iter = freeMemory.iterator(); iter.hasNext() != false; ) {
+			NodeSpace ns = iter.next();
+			if (ns.getAvailableSpace() > spaceRequired) {
+				return ns;
+			}
+		}
+		throw new NoSpaceAvailableException ();
+	}
+	public void put (InetAddress ipAddress, int port, long spaceAvailable) {
+		freeMemory.add(new NodeSpace (ipAddress, port, spaceAvailable));
+	}	
+}
+
+/**
+ * Data structure to store the information about 
+ * how much space is available on each node of the cluster.
+ * Store the node information in form of IP address,
+ * port number and available space at the node
+ * */
+class NodeSpace {
+	InetAddress ipAddress;
+	int port;
+	long spaceAvailable;
+	public NodeSpace (InetAddress ia, int p, long s) {
+		ipAddress = ia;
+		port = p;
+		spaceAvailable = s;
+	}
+	public long getAvailableSpace () {
+		return spaceAvailable;
+	}
+	public void setAvailableSpace (InetAddress ia, long s) {
+		ipAddress = ia;
+		spaceAvailable = s;
 	}
 }
 class HtbtBuddyMap implements Runnable {
