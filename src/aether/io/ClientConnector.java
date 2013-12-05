@@ -161,7 +161,8 @@ public class ClientConnector implements Runnable {
                         add.toString().replaceFirst(".*/", "");
             }
             
-            load = load + "%" + addresses;
+            
+            load = load + "%" + i.toString() + "|" + addresses;
         }
         
         return load;
