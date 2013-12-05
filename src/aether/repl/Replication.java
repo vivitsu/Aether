@@ -84,7 +84,7 @@ class NoSpaceAvailableException extends Exception {
 	
 }
 class ChunkSpaceMap {
-	ArrayList<NodeSpace> nodeSpace;
+	ArrayList<NodeSpace> freeMemory;
 	
 	/**
 	 * Get the node address details in the cluster where 
@@ -94,7 +94,10 @@ class ChunkSpaceMap {
 	 * the calling code by reporting it to the user.
 	 * */
 	public NodeSpace getStorageNode (long spaceRequired) throws NoSpaceAvailableException {
-		for (Iterator<NodeSpace> iter = nodeSpace.iterator(); iter.hasNext() != false; ) {
+		
+		//iterate through the list and use the  
+		//first node where space is available.
+		for (Iterator<NodeSpace> iter = freeMemory.iterator(); iter.hasNext() != false; ) {
 			NodeSpace ns = iter.next();
 			if (ns.getAvailableSpace() > spaceRequired) {
 				return ns;
@@ -103,13 +106,15 @@ class ChunkSpaceMap {
 		throw new NoSpaceAvailableException ();
 	}
 	public void put (InetAddress ipAddress, int port, long spaceAvailable) {
-		nodeSpace.add(new NodeSpace (ipAddress, port, spaceAvailable));
-	}
-	
+		freeMemory.add(new NodeSpace (ipAddress, port, spaceAvailable));
+	}	
 }
 
 /**
- * 
+ * Data structure to store the information about 
+ * how much space is available on each node of the cluster.
+ * Store the node information in form of IP address,
+ * port number and available space at the node
  * */
 class NodeSpace {
 	InetAddress ipAddress;
