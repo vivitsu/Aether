@@ -143,6 +143,32 @@ public class ClientConnector implements Runnable {
     
     
     
+    /**
+     * Prepare the payload for 'l' message to be sent to the client
+     * @param map   Hashmap containing chunkIds and list of nodes having those
+     * @return  String delimited chunks and addresses.
+     */ 
+    private String prepareChunkNodeList (HashMap<Integer, 
+            LinkedList<InetAddress>> map) {
+        
+        String load = "";
+        for (Integer i: map.keySet()) {
+            
+            LinkedList<InetAddress> nodes = map.get(i);
+            String addresses = "";
+            for (InetAddress add: nodes) {
+                addresses = addresses + ":" + 
+                        add.toString().replaceFirst(".*/", "");
+            }
+            
+            load = load + "%" + addresses;
+        }
+        
+        return load;
+    }
+    
+    
+    
     
     /**
      * Handle the read request from client
