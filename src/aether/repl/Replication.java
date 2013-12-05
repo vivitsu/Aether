@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.logging.Logger;
+import aether.net.*;
+import aether.cluster.*;
 
 
 public class Replication {
@@ -21,6 +24,8 @@ public class Replication {
 	public static int HTBT_RCV_PORT_NUMBER = 34445;
 	public static int NUM_RETRIES = 4;
 	public static int TIMEOUT_BEFORE_DEAD = 10000;	//milliseconds
+	private static final Logger log = 
+            Logger.getLogger(Replication.class.getName());
 	/**
 	 * @param args
 	 */
@@ -85,7 +90,7 @@ class NoSpaceAvailableException extends Exception {
 }
 class ChunkSpaceMap {
 	ArrayList<NodeSpace> freeMemory;
-	
+	private NetMgr comm;
 	/**
 	 * Get the node address details in the cluster where 
 	 * space is still available. The first fit algorithm 
@@ -108,6 +113,18 @@ class ChunkSpaceMap {
 	public void put (InetAddress ipAddress, int port, long spaceAvailable) {
 		freeMemory.add(new NodeSpace (ipAddress, port, spaceAvailable));
 	}	
+	
+	public void calculatefreeMemory()throws IOException {
+		
+		InetAddress bAddr = NetMgr.getBroadcastAddr();
+		if (bAddr != null) {
+		
+			ControlMessage freespacesearch = new ControlMessage('f',bAddr);
+			comm.send(freespacesearch);
+			
+		}	
+		
+	}
 }
 
 /**
