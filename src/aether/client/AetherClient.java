@@ -10,6 +10,8 @@ import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.logging.*;
 
 public class AetherClient {
@@ -351,8 +353,9 @@ public class AetherClient {
     public void read(String filename) throws IOException {
 
         int i = 0, count = 0;
-        String recdFile = null;
         ClusterTableRecord[] chunkNodes = null;
+
+        HashMap<Integer, LinkedList<String>> chunkList = null;
 
         while (true) {
 
@@ -365,24 +368,41 @@ public class AetherClient {
                 ControlMessage readRequest = new ControlMessage('e', ip, filename);
 
                 /* Get the list of nodes that have chunks of the file. */
-                chunkNodes = getNodeList(ip, readRequest);
+                Socket socket = new Socket(myIp, port);
+                InetSocketAddress endpoint = new InetSocketAddress(ip, port);
 
-                Thread[] readers = new Thread[chunkNodes.length];
+                socket.connect(endpoint, 1000);
 
-                Chunk[] chunks = new Chunk[chunkNodes.length];
+                Object obj = communicate(socket, readRequest);
+
+                if (obj instanceof HashMap) {
+
+                    // TODO: Fix unchecked cast warning
+                    chunkList = (HashMap<Integer, LinkedList<String>>) obj;
+
+                }
+
+                Thread[] readers = new Thread[chunkList.size()];
+
+                Chunk[] chunks = new Chunk[chunkList.size()];
+
+                int j = 0;
 
                 /* For each node that has the chunk, start a AetherFileReader thread. */
-                for (int j = 0; j < chunkNodes.length; j++) {
+
+                for (Map.Entry<Integer, LinkedList<String>> entry : chunkList.entrySet()) {
 
                     chunks[j] = null;
 
                     // TODO: Chunk name and ID - What will I get along with the node list?
-                    AetherFileReader fileReader = new AetherFileReader(dummyName, chunkNodes[j].getNodeIp(), port, myIp, chunks[j]);
+                    AetherFileReader fileReader = new AetherFileReader(filename, entry.getKey(), chunkNodes[j].getNodeIp(), port, myIp, chunks[j], entry.getValue());
                     readers[j] = new Thread(fileReader);
 
                     readers[j].start();
-                }
 
+                    j++;
+
+                }
 
                 assembleChunks(chunks, readers, filename);
 
@@ -465,6 +485,11 @@ public class AetherClient {
             } catch (IOException e) {
 
                 logger.log(Level.SEVERE, "Socket connection error while trying to write.");
+                e.printStackTrace();
+
+            } catch (ClassNotFoundException e) {
+
+                logger.log(Level.SEVERE, "Could not confirm write on cluster.");
                 e.printStackTrace();
 
             }
