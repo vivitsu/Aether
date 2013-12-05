@@ -238,6 +238,7 @@ public class ClientConnector implements Runnable {
          */
         Chunk[] chunks = chunkify(rawdata, file, chunkSize,
                 numChunks);
+        log.log(Level.FINE, "Created {0} chunks", chunks.length);
         
         /* Now I just need to pass these chunks to the replication manager
          * and we are set. This final step cannot be completed till replication
@@ -245,6 +246,32 @@ public class ClientConnector implements Runnable {
          */
     }
     
+    
+    
+    
+    /**
+     * Return the chunk the client has asked for
+     * @param first ControlMessage sent by client having filename and chunkId
+     * @throws IOException 
+     */
+    private void readChunk (ControlMessage first) throws IOException {
+        
+        String chunkDetails = first.parseBControl();
+        String[] tokens = chunkDetails.split(":");
+        
+        String chunkName = tokens[0] + tokens[1];
+        log.log(Level.FINE, "Received request for chunk name {0}", chunkName);
+        Chunk chunk = null;
+        
+        // Get the chunk from replication manager
+        /*
+         * Have to write the code to get the chunk from replication manager 
+         * here. The API is not defined yet.
+         */
+        
+        oOut.writeObject(chunk);
+        oOut.flush();
+    }
     
     
     
@@ -289,6 +316,14 @@ public class ClientConnector implements Runnable {
                      */
 
                     write(first);
+                    break;
+                    
+                case 'b':
+                    /* Read chunk request. This means that the client has
+                     * the chunk Ids and filename and knows what he is 
+                     * asking for. Just return him the chunk.
+                     */
+                    readChunk(first);
                     break;
 
                 default:
