@@ -7,14 +7,19 @@ package aether.io;
 import aether.cluster.ClusterMgr;
 import aether.conf.ConfigMgr;
 import aether.net.ControlMessage;
+import aether.net.NetMgr;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -46,7 +51,7 @@ public class ClientConnector implements Runnable {
     
     
     
-    static {
+    {
         log.setLevel(Level.INFO);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter());
@@ -138,6 +143,33 @@ public class ClientConnector implements Runnable {
     
     
     
+    /**
+     * Prepare the payload for 'l' message to be sent to the client
+     * @param map   Hashmap containing chunkIds and list of nodes having those
+     * @return  String delimited chunks and addresses.
+     */ 
+    private String prepareChunkNodeList (HashMap<Integer, 
+            LinkedList<InetAddress>> map) {
+        
+        String load = "";
+        for (Integer i: map.keySet()) {
+            
+            LinkedList<InetAddress> nodes = map.get(i);
+            String addresses = "";
+            for (InetAddress add: nodes) {
+                addresses = addresses + ":" + 
+                        add.toString().replaceFirst(".*/", "");
+            }
+            
+            
+            load = load + "%" + i.toString() + "|" + addresses;
+        }
+        
+        return load;
+    }
+    
+    
+    
     
     /**
      * Handle the read request from client
@@ -168,18 +200,71 @@ public class ClientConnector implements Runnable {
             oOut.flush();
 
         } else {
-
-            /* We need to query the replication manager to get 
-             * the list of nodes which have the chunks. The list 
-             * of chunks is to be retrieved from the table we 
-             * have. 
-             */
-            Integer i = map.get(filename);
-
+            
             /*
-             * TODO: Interface with replication manager and
-             * send the list of nodes to the client.
+             * First get the list of nodes that have chunks of this file
              */
+
+            NetMgr netmgr = new NetMgr (sock.getLocalPort());
+            ControlMessage probe = new ControlMessage ('e', 
+                    NetMgr.getBroadcastAddr(), filename);
+            log.log(Level.FINE, "Querying for the chunk list of file {0}", 
+                    filename);
+            netmgr.send(probe);
+            
+            HashMap<Integer, LinkedList<InetAddress>> chunkMap = 
+                    new HashMap<>();
+            
+            while (true) {
+            
+                log.fine("Waiting for chunk reply");
+                ControlMessage reply = null;
+                try {
+                    reply = (ControlMessage) netmgr.receive();
+                } catch (SocketTimeoutException e) {
+                    /* This means no more replies are coming.
+                     * We must have gotten all of them.
+                     */
+                    log.fine("Tired of waiting for chunk replies");
+                    break;
+                }
+                
+                
+                if (reply.getMessageSubtype() != 'k') {
+                    continue;
+                }
+                
+                String data = reply.parseKControl();
+                String[] chunkIds = data.split(":");
+                InetAddress addr = reply.getSourceIp();
+                
+                for (String id:chunkIds) {
+                    /* Prepare a map in which chunkId is key and InetAddress
+                     * list is value.
+                     */
+                    Integer i = Integer.parseInt(id);
+                    if (chunkMap.containsKey(i)) {
+                        LinkedList<InetAddress> foo = chunkMap.get(i);
+                        foo.add(addr);
+                        chunkMap.put(i, foo);
+                    } else {
+                        LinkedList<InetAddress> foo = new LinkedList<>();
+                        foo.add(addr);
+                        chunkMap.put(i, foo);
+                    }
+                }
+                
+            }
+            
+            /* We are here means chunk map is prepared. Now prepare the list 
+             * message to be sent.
+             */
+            String payload = prepareChunkNodeList (chunkMap);
+            ControlMessage list = new ControlMessage ('l', 
+                    sock.getInetAddress(), payload);
+            oOut.writeObject(list);
+            oOut.flush();
+
         }
     }
     
@@ -239,6 +324,8 @@ public class ClientConnector implements Runnable {
         Chunk[] chunks = chunkify(rawdata, file, chunkSize,
                 numChunks);
         log.log(Level.FINE, "Created {0} chunks", chunks.length);
+        
+        map.put(file, chunks.length);
         
         /* Now I just need to pass these chunks to the replication manager
          * and we are set. This final step cannot be completed till replication
