@@ -5,6 +5,7 @@ import aether.io.Chunk;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -53,7 +54,7 @@ public class AetherFileReader implements Runnable {
     /**
      * Sole constructor.
      *
-     * @param fname  The filename, i.e. chunk ID to be requested
+     * @param fname  The filename, i.e. chunk to be requested
      * @param ip     The node to request the chunk from
      * @param prt    Port at which to communicate
      * @param mIP    Client node's external IP
@@ -79,6 +80,11 @@ public class AetherFileReader implements Runnable {
      */
     public Object communicate(Socket socket) throws IOException {
 
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+        oos.writeObject(filename); // TODO: Chunk name and ID, most probably
+        oos.flush();
+
         ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
         Object resp = null;
@@ -98,6 +104,17 @@ public class AetherFileReader implements Runnable {
 
     }
 
+    /**
+     * Gets chunk of data by communicating with the node over the socket specified by 'socket'.
+     * Internally, it will call the {@link #communicate(java.net.Socket)} method to receive the
+     * object from the node over the socket.
+     *
+     * If the data received over the socket is null, it will throw a NullPointerException
+     *
+     * @param socket The socket over which to communicate
+     * @throws IOException If socket communication fails
+     * @throws NullPointerException If data received over socket is null
+     */
     public void getChunk(Socket socket) throws IOException {
 
         dataChunk = (Chunk) communicate(socket);
@@ -109,6 +126,15 @@ public class AetherFileReader implements Runnable {
         }
     }
 
+
+    /**
+     * Creates a socket that binds to the client's external IP address and connects to the
+     * cluster node. Cluster node IP is specified by {@link #nodeIp} and client's external
+     * IP is specified by {@link #myIp}
+     *
+     * @return Socket bound to client's external IP and connected to the cluster node
+     * @throws IOException If socket creation fails
+     */
     public Socket connectToNode() throws IOException {
 
         Socket clusterSoc = new Socket(myIp, port);

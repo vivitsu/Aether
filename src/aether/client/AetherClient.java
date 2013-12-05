@@ -8,6 +8,7 @@ import aether.net.NetMgr;
 
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.*;
 
@@ -284,6 +285,20 @@ public class AetherClient {
     }
 
     /**
+     * Select {@link #K} nodes out of the node list received from the cluster node.
+     * Runs a simple iterative loop to select the first K records from the node list.
+     *
+     * @param tempRecords The record list from which to select the K nodes.
+     */
+    private void selectKNodes(ClusterTableRecord[] tempRecords) {
+
+        for (int i = 0; i < K; i++) {
+            nodeList[i] = tempRecords[i];
+        }
+
+    }
+
+    /**
      * Communicate on the given socket by writing the given object to the socket and receiving the
      * response over the socket.
      *
@@ -321,20 +336,6 @@ public class AetherClient {
     }
 
     /**
-     * Select {@link #K} nodes out of the node list received from the cluster node.
-     * Runs a simple iterative loop to select the first K records from the node list.
-     *
-     * @param tempRecords The record list from which to select the K nodes.
-     */
-    private void selectKNodes(ClusterTableRecord[] tempRecords) {
-
-        for (int i = 0; i < K; i++) {
-            nodeList[i] = tempRecords[i];
-        }
-
-    }
-
-    /**
      * Reads the file specified by the filename from the cluster. Will contact one node from the node list with the
      * request. If that node is not able to fulfill the request, it will try with another node in the node list and so
      * on, until it has tried contacting all the nodes in the node list at least {@link #MAX_RETRIES} no. of times.
@@ -345,13 +346,12 @@ public class AetherClient {
      * node to request the chunk from that node.
      *
      * @param filename The filename to be requested from the cluster
-     * @return String containingg the filename of the File that was read from the cluster.
      * @throws IOException If Socket communication fails
      */
-    public String read(String filename) throws IOException {
+    public void read(String filename) throws IOException {
 
         int i = 0, count = 0;
-
+        String recdFile = null;
         ClusterTableRecord[] chunkNodes = null;
 
         while (true) {
@@ -362,10 +362,12 @@ public class AetherClient {
             try {
 
                 /* Read request. */
-                ControlMessage readRequest = new ControlMessage('e', ip);
+                ControlMessage readRequest = new ControlMessage('e', ip, filename);
 
                 /* Get the list of nodes that have chunks of the file. */
                 chunkNodes = getNodeList(ip, readRequest);
+
+                Thread[] readers = new Thread[chunkNodes.length];
 
                 Chunk[] chunks = new Chunk[chunkNodes.length];
 
@@ -374,11 +376,15 @@ public class AetherClient {
 
                     chunks[j] = null;
 
+                    // TODO: Chunk name and ID - What will I get along with the node list?
                     AetherFileReader fileReader = new AetherFileReader(dummyName, chunkNodes[j].getNodeIp(), port, myIp, chunks[j]);
-                    Thread reader = new Thread(fileReader);
+                    readers[j] = new Thread(fileReader);
 
-                    reader.start();
+                    readers[j].start();
                 }
+
+
+                assembleChunks(chunks, readers, filename);
 
             } catch (SocketTimeoutException e) {
 
@@ -391,13 +397,121 @@ public class AetherClient {
                 e.printStackTrace();
 
             } catch (IOException e) {
+
                 throw e;
+
+            } catch (InterruptedException e) {
+
+                logger.log(Level.SEVERE, "Thread was interrupted. Could not assemble chunks");
+                e.printStackTrace();
+
             }
 
         }
-
-
     }
+
+    public void assembleChunks(Chunk[] chunks, Thread[] readers, String filename) throws InterruptedException {
+
+        try {
+
+            FileWriter recdFile = new FileWriter(filename);
+
+            /* Wait for all threads to finish execution so that we have all the chunks. */
+            for (int i = 0; i < chunks.length; i++) {
+                readers[i].join();
+            }
+
+            Arrays.sort(chunks, new ChunkComparator());
+
+            for (int i = 0; i < chunks.length; i++) {
+
+                String str = new String(chunks[i].getData());
+                recdFile.append(str);
+
+            }
+
+        } catch (IOException e) {
+
+            logger.log(Level.SEVERE, "Error while opening file for writing");
+            e.printStackTrace();
+
+        }
+    }
+
+    public boolean write(String filename) throws SocketTimeoutException {
+
+        boolean status;
+        int i = 0, count = 0;
+
+        while (true) {
+
+            InetSocketAddress endpoint = new InetSocketAddress(nodeList[i].getNodeIp(), port);
+
+            try {
+
+                status = write(endpoint, filename);
+                return status;
+
+            } catch (SocketTimeoutException e) {
+
+                if (i == K && ++count == MAX_RETRIES) {
+                    throw e;
+                } else {
+                    i++;
+                }
+
+                e.printStackTrace();
+
+            } catch (IOException e) {
+
+                logger.log(Level.SEVERE, "Socket connection error while trying to write.");
+                e.printStackTrace();
+
+            }
+        }
+    }
+
+    private boolean write(InetSocketAddress endpoint, String filename) throws IOException, ClassNotFoundException {
+
+        boolean status = false;
+
+        Socket writeSock = new Socket(myIp, port);
+        writeSock.connect(endpoint, 1000);
+
+        BufferedReader br = new BufferedReader(new FileReader(filename));
+        String input;
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        while ((input = br.readLine()) != null) {
+
+            byte[] bytes = input.getBytes();
+            outputStream.write(bytes);
+
+        }
+
+        byte[] bytes = outputStream.toByteArray();
+
+        ObjectOutputStream oos = new ObjectOutputStream(writeSock.getOutputStream());
+        oos.write(bytes);
+
+        ObjectInputStream ois = new ObjectInputStream(writeSock.getInputStream());
+
+        try {
+
+            ControlMessage ack = (ControlMessage) ois.readObject();
+
+            if (ack.getMessageSubtype() == 'k') {
+                status = true;
+            }
+
+        } catch (ClassNotFoundException e) {
+            throw e;
+        }
+
+        return status;
+    }
+
 
     /**
      * Initialize an AetherClient object and initialize it.
