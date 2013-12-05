@@ -14,7 +14,7 @@ public class ConfigMgr {
     
     
     private static HashMap<String,String> configDict = 
-            new HashMap<String,String>();
+            new HashMap<>();
 
     
     
@@ -195,5 +195,15 @@ public class ConfigMgr {
     public static int getChunkSize () {
         Integer size = Integer.parseInt(configDict.get("chunkSize"));
         return size.intValue();
+    }
+    
+    
+    /**
+     * Get the replication factor
+     * @return int replication factor
+     */
+    public static int getReplFactor () {
+        Integer repl = Integer.parseInt(configDict.get("replFactor"));
+        return repl.intValue();
     }
 }
