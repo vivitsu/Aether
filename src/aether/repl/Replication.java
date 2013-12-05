@@ -68,27 +68,57 @@ class ChunkReplicator implements Runnable {
 		
 	}
 }
-
-class ChunkSpaceMap {
-	ArrayList<NodeSpace> nodeSpace;
-	public void getStorageNode () {
-		for (Iterator<NodeSpace> iter = nodeSpace.iterator(); iter.hasNext() != false; ) {
-			NodeSpace ns = iter.next();
-			if (ns.getAvailableSpace() > ) {
-				
-			}
-		}
-	}
-	public void put () {
+/**
+ * This exception is thrown when searching for a node
+ * with available space to store the file chunk. If 
+ * no node in the cluster has space for the file chunk,
+ * this exception is thrown. 
+ * */
+class NoSpaceAvailableException extends Exception {
+	public NoSpaceAvailableException () {
 		
 	}
+	public NoSpaceAvailableException (String message) {
+		super(message);
+	}
+	
 }
+class ChunkSpaceMap {
+	ArrayList<NodeSpace> nodeSpace;
+	
+	/**
+	 * Get the node address details in the cluster where 
+	 * space is still available. The first fit algorithm 
+	 * is used. If no such node exists in the cluster, 
+	 * it throws an exception that should be handled by 
+	 * the calling code by reporting it to the user.
+	 * */
+	public NodeSpace getStorageNode (long spaceRequired) throws NoSpaceAvailableException {
+		for (Iterator<NodeSpace> iter = nodeSpace.iterator(); iter.hasNext() != false; ) {
+			NodeSpace ns = iter.next();
+			if (ns.getAvailableSpace() > spaceRequired) {
+				return ns;
+			}
+		}
+		throw new NoSpaceAvailableException ();
+	}
+	public void put (InetAddress ipAddress, int port, long spaceAvailable) {
+		nodeSpace.add(new NodeSpace (ipAddress, port, spaceAvailable));
+	}
+	
+}
+
+/**
+ * 
+ * */
 class NodeSpace {
 	InetAddress ipAddress;
 	int port;
 	long spaceAvailable;
-	public NodeSpace () {
-		
+	public NodeSpace (InetAddress ia, int p, long s) {
+		ipAddress = ia;
+		port = p;
+		spaceAvailable = s;
 	}
 	public long getAvailableSpace () {
 		return spaceAvailable;
