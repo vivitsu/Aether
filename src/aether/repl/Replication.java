@@ -9,9 +9,12 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+
 
 public class Replication {
 	public static int HTBT_SND_PORT_NUMBER = 34444;
@@ -23,7 +26,7 @@ public class Replication {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		HtbtBuddyMap hbm = new HtbtBuddyMap ();
+		/*HtbtBuddyMap hbm = new HtbtBuddyMap ();
 		try {
 			//hbm.put(new Host (InetAddress.getLocalHost(), Replication.HTBT_RCV_PORT_NUMBER), null);
 			hbm.put(new Host (InetAddress.getByName("192.168.0.10"), Replication.HTBT_RCV_PORT_NUMBER), null);
@@ -39,7 +42,60 @@ public class Replication {
 		HtbtReceiver r = new HtbtReceiver();
 		new Thread(r).start();
 
+		*/
+	}
+}
+class ChunkManager implements Runnable {
+	BlockingQueue chunkQueue;
+	public ChunkManager (BlockingQueue b) {
+		chunkQueue = b;
+	}
+	public void run () {
 		
+	}
+	public Object getNextChunk () {
+		return chunkQueue.remove();
+	}
+	public void addChunk (Object o) {
+		chunkQueue.add(o);
+	}	
+}
+class ChunkReplicator implements Runnable {
+	public ChunkReplicator () {
+		
+	}
+	public void run () {
+		
+	}
+}
+
+class ChunkSpaceMap {
+	ArrayList<NodeSpace> nodeSpace;
+	public void getStorageNode () {
+		for (Iterator<NodeSpace> iter = nodeSpace.iterator(); iter.hasNext() != false; ) {
+			NodeSpace ns = iter.next();
+			if (ns.getAvailableSpace() > ) {
+				
+			}
+		}
+	}
+	public void put () {
+		
+	}
+}
+class NodeSpace {
+	InetAddress ipAddress;
+	int port;
+	long spaceAvailable;
+	public NodeSpace () {
+		
+	}
+	public long getAvailableSpace () {
+		return spaceAvailable;
+	}
+	public void setAvailableSpace (InetAddress ia, long s) {
+		ipAddress = ia;
+		spaceAvailable = s;
 	}
 }
 class HtbtBuddyMap implements Runnable {
