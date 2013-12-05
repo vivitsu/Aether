@@ -4,6 +4,8 @@ package aether.net;
 import aether.cluster.ClusterTableRecord;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  *
@@ -235,5 +237,32 @@ public class ControlMessage extends Message {
             return null;
         }
         return payload.getData();
+    }
+    
+    
+    /**
+     * Parse the control message with subtype 'l' to return a hashmap containing
+     * chunk ids as keys and list of ip strings as value
+     * @return  Map containing chunk to node mapping
+     */
+    public HashMap<Integer, LinkedList<String>> parseLControl () {
+        
+        HashMap<Integer, LinkedList<String>> map = new HashMap<>();
+        
+        String load = payload.getData();
+        String[] records = load.split("%");
+        for (String rec : records) {
+            String[] tokens = rec.split("|");
+            Integer chunkId = Integer.parseInt(tokens[0]);
+            String[] ips = tokens[1].split(":");
+            LinkedList<String> foo = new LinkedList<>();
+            for (String ip:ips) {
+                foo.add(ip);
+            }
+            
+            map.put(chunkId, foo);
+        }
+        
+        return map;
     }
 }
