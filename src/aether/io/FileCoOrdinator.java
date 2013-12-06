@@ -4,6 +4,7 @@
  */
 package aether.io;
 
+import aether.conf.ConfigMgr;
 import aether.net.ControlMessage;
 import aether.net.NetMgr;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class FileCoOrdinator implements Runnable {
     
     private int port;
     private NetMgr netMgr;
-    private boolean isOne;
+    private boolean isOne = false;
     private static final Logger log = 
             Logger.getLogger(DataMgr.class.getName());
     
@@ -45,8 +46,11 @@ public class FileCoOrdinator implements Runnable {
             log.warning("One File co-ordinator is already running");
             throw new UnsupportedOperationException();
         }
-        
+        if (ConfigMgr.getIfDebug()) {
+                log.setLevel(Level.FINE);
+            }
         netMgr = new NetMgr(port);
+        isOne = true;
     }
     
     

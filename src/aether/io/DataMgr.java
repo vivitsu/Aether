@@ -26,7 +26,7 @@ public class DataMgr implements Runnable {
             Logger.getLogger(DataMgr.class.getName());
     private ServerSocket serv;
     ConcurrentHashMap<String, Integer> fileChunkMap;
-    FileCoOrdinator coOrdinator;
+    private FileCoOrdinator coOrdinator;
     
     
     static {
