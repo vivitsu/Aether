@@ -182,9 +182,7 @@ public class ClientConnector implements Runnable {
             UnsupportedOperationException {
         
         String filename = first.ParseEControl();
-        log.log(Level.FINE,
-                "Received a read request for file {0}",
-                filename);
+        
 
         if (filename == null) {
             /* This means that the client is requesting a node 
@@ -201,6 +199,8 @@ public class ClientConnector implements Runnable {
 
         } else {
             
+            log.log(Level.FINE, "Received a read request for file {0}",
+                filename);
             /*
              * First get the list of nodes that have chunks of this file
              */
@@ -383,6 +383,8 @@ public class ClientConnector implements Runnable {
     public void run() {
 
 
+        log.log(Level.FINE, "Starting handshake with client on socket {0}",
+                sock);
 
         try {
             ControlMessage first = (ControlMessage) oIn.readObject();
