@@ -2,6 +2,7 @@ package aether.client;
 
 
 import aether.cluster.ClusterTableRecord;
+import aether.conf.ConfigMgr;
 import aether.io.Chunk;
 import aether.net.ControlMessage;
 import aether.net.NetMgr;
@@ -14,12 +15,15 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.*;
 
+//TODO: Make this a permanently running thread accepting requests on a socket.
+//TODO: Not all sockets are being closed. This can be a problem later.
+
 public class AetherClient {
 
     /**
      * Out of all nodes in cluster, the client will maintain Cluster Table Records for 'K' nodes
      */
-    private final int K = 5;
+    private final int K = 1;
 
     /**
      * For every connection attempt, the client will try for MAX_RETRIES times. This parameter is configured from the
@@ -28,7 +32,7 @@ public class AetherClient {
     int MAX_RETRIES;
 
     /**
-     * The client's external IP address, and two IPs (Primary & Secondary which act as a directory server for all cluster
+     * The client's external IP address, and two IPs (Primary & Secondary) which act as a directory server for all cluster
      * IPs.
      */
     InetAddress primaryIp, secondaryIp, myIp;
@@ -60,7 +64,7 @@ public class AetherClient {
 
     static {
 
-        logger.setLevel(Level.INFO);
+        logger.setLevel(Level.ALL);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter());
         handler.setLevel(Level.ALL);
@@ -82,15 +86,18 @@ public class AetherClient {
      * @see #selectKNodes(aether.cluster.ClusterTableRecord[])
      * @see #getNodeList(java.net.InetAddress, aether.net.ControlMessage)
      * @see #parseConfigFile(String)
-     * @see #getExternalIp()
      */
 
     public void init(String filename) throws SocketException, SocketTimeoutException {
 
+        ConfigMgr.initConfig(filename);  // TODO: Remove redundancies
+
         this.parseConfigFile(filename);
         this.setParams();
-        this.netMgr = new NetMgr(this.port);
-        this.myIp = getExternalIp();
+//        this.netMgr = new NetMgr(this.port);
+//        this.myIp = getExternalIp();
+
+        getLocalIp();
 
         /* This flag decides whether the node list is obtained from primary or secondary IP. */
         boolean ip = true;
@@ -110,25 +117,33 @@ public class AetherClient {
             if (ip) {
                 ipAddr = this.primaryIp;
             } else {
+
+                logger.log(Level.FINE, "Selecting secondary node IP");
                 ipAddr = this.secondaryIp;
             }
 
             try {
 
-                ControlMessage getNodeList = new ControlMessage('j', ipAddr);
+                logger.log(Level.INFO, "ipAddr = " + ipAddr);
+
+                ControlMessage getNodeList = new ControlMessage('e', ipAddr);
                 tempRecords = this.getNodeList(ipAddr, getNodeList);
 
                 if (tempRecords != null) {
 
                     /* Once the node list is obtained, select 'K' nodes */
+                    logger.log(Level.FINE, "Got the node list. Now selecting nodes..");
                     selectKNodes(tempRecords);
 
                 } else {
 
                     /* If we didnt get the cluster table record from the cluster node, throw this */
+                    logger.log(Level.INFO, "Did not get cluster table record from cluster node.");
                     throw new NullPointerException();
 
                 }
+
+                break;
 
             } catch (SocketTimeoutException e) {
 
@@ -215,9 +230,7 @@ public class AetherClient {
      *
      * @return InetAddress object containing the node's external IP.
      */
-    public InetAddress getExternalIp() {
-
-        InetAddress myIp = null;
+/*    public void getExternalIp() {
 
         try {
 
@@ -236,8 +249,26 @@ public class AetherClient {
         }
 
         return myIp;
-    }
+    } */
 
+
+    private void getLocalIp() {
+
+        try {
+
+            Socket s = new Socket("google.com", 80);
+            myIp = InetAddress.getByName(s.getLocalAddress().getHostAddress());
+
+        } catch (UnknownHostException e) {
+
+            e.printStackTrace();
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+
+    }
     /**
      * Gets the node list from the node specified by the 'ip' param. Node list will be in a form
      * of array of ClusterTableRecord objects. This method is used while initializing and while reading
@@ -248,8 +279,7 @@ public class AetherClient {
      * @param cMsg The ControlMessage to send to the cluster node
      * @return Array of {@link aether.cluster.ClusterTableRecord} objects
      * @throws IOException If the socket creation fails
-     * @throws NullPointerException If the message received from the cluster is null or if the {@link #getExternalIp()}
-     *         method has failed.
+     * @throws NullPointerException If the message received from the cluster is null
      * @see #communicate(java.net.Socket, Object)
      * @see aether.net.ControlMessage#parseJControl()
      */
@@ -262,7 +292,9 @@ public class AetherClient {
         if (myIp !=null) {
 
             /* Bind a socket to the client's external IP. */
-            clusterSock = new Socket(myIp, port);
+            //clusterSock = new Socket(myIp, port);
+
+            clusterSock = new Socket();
 
             /* Endpoint is the cluster node to be contacted. */
             InetSocketAddress endpoint = new InetSocketAddress(ip, this.port);
@@ -283,6 +315,7 @@ public class AetherClient {
 
         }
 
+        clusterSock.close();
         return tempRecords;
     }
 
@@ -294,8 +327,11 @@ public class AetherClient {
      */
     private void selectKNodes(ClusterTableRecord[] tempRecords) {
 
+        logger.log(Level.FINE, "Selecting K Nodes..");
+
         for (int i = 0; i < K; i++) {
             nodeList[i] = tempRecords[i];
+            logger.log(Level.FINE, "nodeList[" + i + "] = " + nodeList[i]);
         }
 
     }
@@ -311,10 +347,14 @@ public class AetherClient {
      */
     public Object communicate(Socket socket, Object obj) throws IOException {
 
+        logger.log(Level.FINE, "Communicating with node on " + socket.getInetAddress() + " by sending msg " + obj.toString());
+
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
         oos.writeObject(obj);
         oos.flush();
+
+        logger.log(Level.FINE, "Waiting for response from node..");
 
         ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
@@ -322,6 +362,7 @@ public class AetherClient {
 
         try {
 
+             logger.log(Level.FINE, "Reading response..");
              resp = ois.readObject();
 
 
@@ -332,7 +373,9 @@ public class AetherClient {
 
         }
 
-        socket.close();
+//        socket.close();
+
+        logger.log(Level.FINE, "Returning " + resp.toString() + " to caller.");
 
         return resp;
     }
@@ -368,7 +411,7 @@ public class AetherClient {
                 ControlMessage readRequest = new ControlMessage('e', ip, filename);
 
                 /* Get the list of nodes that have chunks of the file. */
-                Socket socket = new Socket(myIp, port);
+                Socket socket = new Socket();
                 InetSocketAddress endpoint = new InetSocketAddress(ip, port);
 
                 socket.connect(endpoint, 1000);
@@ -405,6 +448,7 @@ public class AetherClient {
                 }
 
                 assembleChunks(chunks, readers, filename);
+                break;
 
             } catch (SocketTimeoutException e) {
 
@@ -469,6 +513,8 @@ public class AetherClient {
 
             try {
 
+                logger.log(Level.FINE, "Sending write request to " + endpoint.getAddress().toString() + " for file " + filename);
+
                 status = write(endpoint, filename);
                 return status;
 
@@ -500,8 +546,10 @@ public class AetherClient {
 
         boolean status = false;
 
-        Socket writeSock = new Socket(myIp, port);
+        Socket writeSock = new Socket();
         writeSock.connect(endpoint, 1000);
+
+        logger.log(Level.FINE, "Connected to endpoint. Converting to byte array..");
 
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String input;
@@ -517,23 +565,46 @@ public class AetherClient {
 
         byte[] bytes = outputStream.toByteArray();
 
-        ObjectOutputStream oos = new ObjectOutputStream(writeSock.getOutputStream());
-        oos.write(bytes);
 
-        ObjectInputStream ois = new ObjectInputStream(writeSock.getInputStream());
+        ControlMessage cMsg = new ControlMessage('w', endpoint.getAddress(), filename + ":" + bytes.length);
 
-        try {
+        logger.log(Level.FINE, "Sending 'w' control message to node with filename " + filename + ":" + bytes.length);
 
-            ControlMessage ack = (ControlMessage) ois.readObject();
+        ControlMessage recvMsg = (ControlMessage) communicate(writeSock, cMsg);
 
-            if (ack.getMessageSubtype() == 'k') {
-                status = true;
+        if (recvMsg.getMessageSubtype() == 'k') {
+
+            logger.log(Level.FINE, "Received ACK from node. Writing to socket..");
+
+            ObjectOutputStream oos = new ObjectOutputStream(writeSock.getOutputStream());
+            oos.write(bytes);
+            oos.flush();
+
+            status = true;
+
+ /*           ObjectInputStream ois = new ObjectInputStream(writeSock.getInputStream());
+
+            try {
+
+                ControlMessage ack = (ControlMessage) ois.readObject();
+
+                if (ack.getMessageSubtype() == 'k') {
+                    status = true;
+                }
+
+                return status;
+
+            } catch (ClassNotFoundException e) {
+                throw e;
             }
 
-        } catch (ClassNotFoundException e) {
-            throw e;
+        } else {
+            return status;
+        } */
+
         }
 
+        writeSock.close();
         return status;
     }
 

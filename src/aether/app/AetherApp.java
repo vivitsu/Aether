@@ -9,7 +9,7 @@ import java.net.SocketTimeoutException;
 
 public class AetherApp {
 
-    AetherClient myClient;
+    AetherClient myClient = new AetherClient();
 
 
     private void printUsage() {

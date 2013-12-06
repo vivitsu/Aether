@@ -140,7 +140,7 @@ public class AetherFileReader implements Runnable {
      */
     public Socket connectToNode(InetAddress nodeIp) throws IOException {
 
-        Socket clusterSoc = new Socket(myIp, port);
+        Socket clusterSoc = new Socket();
         InetSocketAddress endpoint = new InetSocketAddress(nodeIp, port);
 
         clusterSoc.connect(endpoint, 1000);
@@ -178,7 +178,6 @@ public class AetherFileReader implements Runnable {
                 e.printStackTrace();
 
             } catch (IOException e) {
-
 
                 e.printStackTrace();
             }
