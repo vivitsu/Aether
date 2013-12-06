@@ -42,11 +42,13 @@ class ChunkManager implements Runnable {
 				NodeSpace node = csm.getStorageNode(c.getDataLength());
 				ChunkReplicator cr = new ChunkReplicator (c, node.getIPAddress(), node.getPort());
 				
-				//TODO add the dest node as a chunk buddy 
-				//to maintain heartbeat with that node
 				
 				//replicate the chunk using a thread from the executor pool
 				exec.execute(cr);
+				
+				//TODO add the dest node as a chunk buddy 
+				//to maintain heartbeat with that node
+				
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

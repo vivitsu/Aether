@@ -1,6 +1,7 @@
 package aether.repl;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -29,7 +30,7 @@ class ChunkReplicator implements Runnable {
 	
 	}
 	public void run () {
-		byte[] chunkData = new byte[chunk.getDataLength()];
+		/*byte[] chunkData = new byte[chunk.getDataLength()];
 		int sourcePort = 55555;										//TODO change
 		try {
 		Socket s = new Socket (NetMgr.getLocalIp(), sourcePort);				//TODO change the port number variable
@@ -50,12 +51,24 @@ class ChunkReplicator implements Runnable {
 		//so get the remaining bytes and write to stream
 		int remaining = chunk.getDataLength() - offset;
 		os.write(chunkData, offset, remaining);
-		/*now we are done writing chunk to output stream*/
+		/*now we are done writing chunk to output stream
 		
 		os.close();
 		//TODO add the metadata info to the data structure ChunkFileMetadata
 		
 		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
+		int sourcePort = 44442;
+		try {
+			Socket s = new Socket (NetMgr.getLocalIp(), sourcePort);
+			OutputStream os = s.getOutputStream();
+			ObjectOutputStream oos = new ObjectOutputStream(os);
+			oos.writeObject(chunk);
+			oos.flush();
+			oos.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
