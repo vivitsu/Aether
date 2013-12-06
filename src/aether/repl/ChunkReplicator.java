@@ -42,7 +42,6 @@ class ChunkReplicator implements Runnable {
 		
 		//write the chunk in blocks of 2048 bytes
 		//in the output stream
-		
 		while ((chunk.getDataLength() - offset) > BUFFER_SIZE) {
 			os.write(chunkData, offset, offset + BUFFER_SIZE);
 			offset += BUFFER_SIZE;
