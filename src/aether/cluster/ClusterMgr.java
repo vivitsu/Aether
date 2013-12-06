@@ -600,6 +600,24 @@ public class ClusterMgr implements Runnable {
     
     
     
+    
+    /**
+     * Remove the node from cluster table. This method should be called by
+     * the heartbeat monitor
+     * @param nodeId    Id of the failed node
+     */
+    public void removeFailedNode (Integer nodeId) {
+        
+        if (clusterTable.exists(nodeId)) {
+            log.log(Level.FINE,"Removing node {0}", nodeId);
+            clusterTable.deleteRecord(nodeId);
+            /* Now probably we need to send the updated cluster table to each 
+             * node
+             */
+        } else {
+            log.log(Level.FINE, "Could not find node {0}", nodeId);
+        }
+    }
   
     
     @Override
