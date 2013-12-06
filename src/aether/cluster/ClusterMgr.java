@@ -1,6 +1,7 @@
 package aether.cluster;
 
 import aether.conf.ConfigMgr;
+import aether.core.AetherNode;
 import aether.net.ControlMessage;
 import aether.net.Message;
 import aether.net.NetMgr;
@@ -639,6 +640,7 @@ public class ClusterMgr implements Runnable {
         }
         
         
+        AetherNode.setClusterRunning();
         /* We are here means our table is initialized and we are up and running.
          * Now keep on listening to the socket for any incoming messages
          */
