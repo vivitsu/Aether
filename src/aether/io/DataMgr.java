@@ -26,6 +26,7 @@ public class DataMgr implements Runnable {
             Logger.getLogger(DataMgr.class.getName());
     private ServerSocket serv;
     ConcurrentHashMap<String, Integer> fileChunkMap;
+    FileCoOrdinator coOrdinator;
     
     
     static {
@@ -69,6 +70,7 @@ public class DataMgr implements Runnable {
     private void init () throws IOException {
         
         serv = new ServerSocket(dataPort);
+        coOrdinator = new FileCoOrdinator();
     }
     
     
@@ -77,6 +79,8 @@ public class DataMgr implements Runnable {
     public void run () {
         
         log.info("Starting the DataMgr");
+        Thread coOrdinatorThread = new Thread(coOrdinator);
+        coOrdinatorThread.start();
         
         while (true) {
             
