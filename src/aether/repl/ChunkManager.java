@@ -1,5 +1,6 @@
 package aether.repl;
 
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -37,6 +38,7 @@ class ChunkManager implements Runnable {
 				//calculatefreeMemory();
 				//remove from the queue
 				c = (Chunk)chunkQueue.take();
+				csm.calculatefreeMemory(); 					//call for free memory check
 				NodeSpace node = csm.getStorageNode(c.getDataLength());
 				ChunkReplicator cr = new ChunkReplicator (c, node.getIPAddress(), node.getPort());
 				
@@ -49,6 +51,9 @@ class ChunkManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (NoSpaceAvailableException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
