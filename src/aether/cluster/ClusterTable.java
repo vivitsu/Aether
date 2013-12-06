@@ -4,9 +4,9 @@
  */
 package aether.cluster;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -15,7 +15,7 @@ import java.util.Set;
 public class ClusterTable {
     
     
-    HashMap<Integer,ClusterTableRecord> table;
+    ConcurrentHashMap<Integer,ClusterTableRecord> table;
     private static int numTables = 0;
     
     
@@ -26,7 +26,7 @@ public class ClusterTable {
      */
     public ClusterTable () {
         
-        table = new HashMap<>();
+        table = new ConcurrentHashMap<>();
         numTables++;
     }
     
