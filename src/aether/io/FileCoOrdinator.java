@@ -9,7 +9,6 @@ import aether.net.NetMgr;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,7 +38,7 @@ public class FileCoOrdinator implements Runnable {
     }
     
     
-    public FileCoOrdinator (int port, ConcurrentHashMap<String, Integer> m) 
+    public FileCoOrdinator () 
             throws SocketException {
         
         if (isOne) {
@@ -73,6 +72,7 @@ public class FileCoOrdinator implements Runnable {
     @Override
     public void run() {
         
+        log.fine("Lauching file co-ordinator");
         while (true) {
             
             try {
