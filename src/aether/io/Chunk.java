@@ -18,6 +18,9 @@ public class Chunk implements Serializable {
     private String chunkName;
     
     
+    
+    
+    
     /**
      * Chunk class represents a chunk of the file which can be replicated.
      * There is small metadata kept with each chunk which includes the filename,
@@ -34,6 +37,22 @@ public class Chunk implements Serializable {
         this.data = data.clone();
         chunkName = file + chunkId;
     }
+    
+    
+    
+    
+    /**
+     * Such a constructor can be extended to store metadata without actual data
+     * @param file
+     * @param id 
+     */
+    public Chunk (String file, int id) {
+        filename = file;
+        chunkId = id;
+        chunkName = file + chunkId;
+    }
+    
+    
     
     
     
