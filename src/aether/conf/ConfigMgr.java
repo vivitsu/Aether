@@ -212,4 +212,15 @@ public class ConfigMgr {
         Integer repl = Integer.parseInt(configDict.get("replFactor"));
         return repl.intValue();
     }
+    
+    
+    /**
+     * Get the port for file co-ordinator
+     * @return int port for file co-ordinator
+     */
+    public static int getCoOrdPort () {
+        
+        Integer port = Integer.parseInt(configDict.get("coOrdPort"));
+        return port.intValue();
+    }
 }
