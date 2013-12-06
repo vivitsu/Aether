@@ -311,6 +311,10 @@ public class ClientConnector implements Runnable {
         if ((size % chunkSize) != 0) {
             numChunks++;
         }
+        
+        log.fine("Sending acknowledgment to client");
+        oOut.writeObject(ack);
+        oOut.flush();
 
         log.log(Level.FINE,
                 "Spliting the file {0} in {1} chunks",
