@@ -57,11 +57,7 @@ public class AetherClient {
      */
     int port;
 
-    Socket clientSocket = new Socket();
-    ObjectInputStream ois;
-    ObjectOutputStream oos;
-
-    /**
+   /**
      * Logger
      */
     private final static Logger logger = Logger.getLogger(AetherClient.class.getName());
@@ -293,17 +289,17 @@ public class AetherClient {
         if (myIp !=null) {
 
             /* Bind a socket to the client's external IP. */
-            //clusterSock = new Socket(myIp, port);
+            Socket clusterSock = new Socket();
 
             /* Endpoint is the cluster node to be contacted. */
             InetSocketAddress endpoint = new InetSocketAddress(ip, this.port);
 
-            clientSocket.connect(endpoint, 1000);
+            clusterSock.connect(endpoint, 1000);
 
-            oos = new ObjectOutputStream(clientSocket.getOutputStream());
-            ois = new ObjectInputStream(clientSocket.getInputStream());
+            ObjectOutputStream oos = new ObjectOutputStream(clusterSock.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(clusterSock.getInputStream());
 
-            ControlMessage msg = (ControlMessage) communicate(cMsg);
+            ControlMessage msg = (ControlMessage) communicate(oos, ois, cMsg);
 
             if (msg != null) {
                 tempRecords = msg.parseJControl();
@@ -345,7 +341,7 @@ public class AetherClient {
      * @return The Object that was received over the socket
      * @throws IOException If socket communication fails
      */
-    public Object communicate(Object obj) throws IOException {
+    public Object communicate(ObjectOutputStream oos, ObjectInputStream ois, Object obj) throws IOException {
 
         logger.log(Level.FINE, "Communicating with node " + "by sending msg " + obj.toString());
 
@@ -403,15 +399,20 @@ public class AetherClient {
 
             try {
 
+                Socket readSocket = new Socket();
+
                 /* Read request. */
                 ControlMessage readRequest = new ControlMessage('e', ip, filename);
 
                 /* Get the list of nodes that have chunks of the file. */
                 InetSocketAddress endpoint = new InetSocketAddress(ip, port);
 
-                clientSocket.connect(endpoint, 1000);
+                readSocket.connect(endpoint, 1000);
 
-                Object obj = communicate(readRequest);
+                ObjectInputStream ois = new ObjectInputStream(readSocket.getInputStream());
+                ObjectOutputStream oos = new ObjectOutputStream(readSocket.getOutputStream());
+
+                Object obj = communicate(oos, ois, readRequest);
 
                 if (obj instanceof HashMap) {
 
@@ -541,8 +542,13 @@ public class AetherClient {
 
         boolean status = false;
 
-        clientSocket.connect(endpoint, 1000);
+        Socket writeSocket = new Socket();
+
+        writeSocket.connect(endpoint, 1000);
         logger.log(Level.FINE, "Connected to endpoint. Converting to byte array..");
+
+        ObjectOutputStream oos = new ObjectOutputStream(writeSocket.getOutputStream());
+        ObjectInputStream ois = new ObjectInputStream(writeSocket.getInputStream());
 
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String input;
@@ -563,7 +569,7 @@ public class AetherClient {
 
         logger.log(Level.FINE, "Sending 'w' control message to node with filename " + filename + ":" + bytes.length);
 
-        ControlMessage recvMsg = (ControlMessage) communicate(cMsg);
+        ControlMessage recvMsg = (ControlMessage) communicate(oos, ois, cMsg);
 
         if (recvMsg.getMessageSubtype() == 'k') {
 
