@@ -44,8 +44,9 @@ public class HtbtBuddyMap implements Runnable {
 						//remove entry from the heartbeat metadata data structure
 						clusterNodes.remove(entry.getKey());
 						
-						//TODO start replicating chunks on the failed node
-						ChunkDistribution cd = ChunkDistribution.getInstance();
+
+						CD cd = CD.getInstance();
+						cd.removeChunk(entry.getKey());
 						
 						System.out.println("Port " + entry.getKey() + " dead");
 					}

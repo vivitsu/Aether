@@ -1,7 +1,14 @@
 package aether.repl;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import aether.net.Message;
+import aether.net.NetMgr;
 
 
 public class Replication {
@@ -20,6 +27,7 @@ public class Replication {
 	}
 	public Replication () {
 		HtbtBuddyMap hbm = new HtbtBuddyMap ();
+		//hbm.put(new Host(), null);
 		HtbtSender s = new HtbtSender (hbm);		
 		HtbtReceiver r = new HtbtReceiver ();
 		ReplicationListener rl = ReplicationListener.getInstance();
@@ -31,29 +39,40 @@ public class Replication {
 		new Thread(rl).start();
 	}
 	public void run () {
-		DatagramSocket s = new DatagramSocket ();	//TODO get the local IP address from Inet manager
-		ChunkDistribution cd = ChunkDistribution.getInstance();
-		
-		while (!Thread.currentThread().isInterrupted()) {
-			//TODO send and get reply from other nodes
-			
-			
-			cd.
-		}
-		
+		try {
+			DatagramSocket s = new DatagramSocket (Replication.REPL_MAIN_LISTENER, NetMgr.getLocalIp());
+			CD cd = CD.getInstance();
+			while (!Thread.currentThread().isInterrupted()) {
+				byte[] buffer = new byte[1024];
+				DatagramPacket dpr = new DatagramPacket (buffer, buffer.length);
+				NetMgr mgr = new NetMgr (29298);				
+				Message m = mgr.receive();
+				String fileName = m.toString();
+				ArrayList<Integer> chunkIds = cd.getChunkIDForFile(fileName);
+				byte[] sendbuf = new byte[2048];
+				DatagramPacket dps = new DatagramPacket (chunkIds.toString());
+				s.send(dps);
+			}
+		} catch (SocketException e) {
+
+			e.printStackTrace();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}	
 	}
 	/**
 	 * @param args
 	 */
 	//public static void main(String[] args) {
-		// TODO Auto-generated method stub
+
 		/*HtbtBuddyMap hbm = new HtbtBuddyMap ();
 		try {
 			//hbm.put(new Host (InetAddress.getLocalHost(), Replication.HTBT_RCV_PORT_NUMBER), null);
 			hbm.put(new Host (InetAddress.getByName("192.168.0.10"), Replication.HTBT_RCV_PORT_NUMBER), null);
 			System.out.println(InetAddress.getLocalHost());
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		
