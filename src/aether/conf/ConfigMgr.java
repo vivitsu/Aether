@@ -97,6 +97,12 @@ public class ConfigMgr {
     }
     
     
+    public static int getReplPort(){
+
+        Integer port = Integer.parseInt(configDict.get("replPort"));
+        return port.intValue();
+    	
+    }
     
     /**
      * Get the name of the interface we used for connecting to the cluster
