@@ -17,6 +17,7 @@ import aether.io.Chunk;
  * */
 public class ReplicationListener implements Runnable {
 	private static ReplicationListener repListener;
+	
 	public static synchronized ReplicationListener getInstance () {
 		 if (repListener == null)  {
 			 repListener = new ReplicationListener ();			 
