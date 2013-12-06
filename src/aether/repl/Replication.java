@@ -28,6 +28,7 @@ public class Replication {
 	public static int HTBT_RCV_PORT_NUMBER = 34445;
 	public static int NUM_RETRIES = 4;
 	public static int TIMEOUT_BEFORE_DEAD = 10000;	//milliseconds
+	public static int REPL_PORT_LISTENER = 44444;
 	/**
 	 * @param args
 	 */
