@@ -100,7 +100,8 @@ public class ClusterMgr implements Runnable {
             UnsupportedOperationException, SocketException {
         
         if (instance == null) {
-            return new ClusterMgr();
+            instance = new ClusterMgr();
+            return instance;
         } else {
             return instance;
         }
