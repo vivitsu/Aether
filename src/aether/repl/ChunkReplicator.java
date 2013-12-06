@@ -67,8 +67,19 @@ class ChunkReplicator implements Runnable {
 			oos.writeObject(chunk);
 			oos.flush();
 			oos.close();
+			
+			//add the dest node into the Chunk 
+			//distribution data structure
+			ChunkDistribution cd = ChunkDistribution.getInstance();
+			cd.addChunk(new Host (destIP, destPort), chunk.getChunkName());
+			
+			//add the dest node as a chunk buddy 
+			//to maintain heartbeat with that node
+			HtbtBuddyMap hbm = HtbtBuddyMap.getInstance ();
+			hbm.put(new Host (destIP, destPort), null);
+			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("IOException at Chunk replicator");
 			e.printStackTrace();
 		}
 	}

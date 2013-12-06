@@ -1,9 +1,9 @@
 package aether.repl;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 /**
  * Data structure that stores the chunk buddies 
  * of a cluster node. A heartbeat with each of the 
@@ -11,19 +11,28 @@ import java.util.Map.Entry;
  * 
  * */
 public class HtbtBuddyMap implements Runnable {
+	private static HtbtBuddyMap hbm; 
 	Map<Host, HostDetails> clusterNodes;
 	public HtbtBuddyMap () {
-		clusterNodes = new HashMap<Host, HostDetails> ();
+		clusterNodes = new ConcurrentHashMap<Host, HostDetails> ();
 	}
-	public Set<Map.Entry<Host, HostDetails>> getBuddyMapSet () {
+	
+	public synchronized static HtbtBuddyMap getInstance () {
+		if (hbm == null) {
+			hbm = new HtbtBuddyMap ();
+		}
+		
+		return hbm;
+	}
+	public synchronized Set<Map.Entry<Host, HostDetails>> getBuddyMapSet () {
 		return clusterNodes.entrySet();
 	}
-	public void put (Host h, HostDetails hd) {
+	public synchronized void put (Host h, HostDetails hd) {
 		clusterNodes.put(h, hd);
 	}
 	public HostDetails get (Host h) {
 		return clusterNodes.get(h);
-	}
+	}	
 	public void run() {
 		while (true) {
 			long difference;
@@ -31,7 +40,13 @@ public class HtbtBuddyMap implements Runnable {
 				synchronized (entry) {
 					difference = System.currentTimeMillis() - entry.getValue().getTime();
 					if ((difference / 1000) > Replication.TIMEOUT_BEFORE_DEAD) {
-						//Replace with logic of what to do when dead
+						
+						//remove entry from the heartbeat metadata data structure
+						clusterNodes.remove(entry.getKey());
+						
+						//TODO start replicating chunks on the failed node
+						ChunkDistribution cd = ChunkDistribution.getInstance();
+						
 						System.out.println("Port " + entry.getKey() + " dead");
 					}
 				}
@@ -39,12 +54,12 @@ public class HtbtBuddyMap implements Runnable {
 			try {
 				Thread.currentThread().sleep(5000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				System.out.println("Interrupted exception at HtbtBuddy Map");
 				e.printStackTrace();
 			}
 		}
 	}
-	public void saveTime (Host h, HostDetails hd) {
+	public synchronized void saveTime (Host h, HostDetails hd) {
 		HostDetails oldDetail;
 		if ( clusterNodes.get(h) != null ) {
 			oldDetail = clusterNodes.get(h);

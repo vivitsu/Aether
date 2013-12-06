@@ -16,6 +16,13 @@ import aether.io.Chunk;
  * manager. It continuously 
  * */
 public class ReplicationListener implements Runnable {
+	private static ReplicationListener repListener;
+	public static synchronized ReplicationListener getInstance () {
+		 if (repListener == null)  {
+			 repListener = new ReplicationListener ();			 
+		 }
+		 return repListener;
+	}
 	public void run () {
 		try {
 			/*ServerSocket socketListener = new ServerSocket (Replication.REPL_PORT_LISTENER);
@@ -45,13 +52,21 @@ public class ReplicationListener implements Runnable {
 				ObjectOutputStream oos = new ObjectOutputStream (fos);
 				oos.writeObject(c);
 				oos.close();
-				ois.close();				
+				ois.close();
+				
+				//Update the local data structure FileChunk Metadata structure
+				FileChunkMetadata fcm = FileChunkMetadata.getInstance();
+				fcm.addChunk(c.getFileName(), c);
+				
+				//Update the HtbtBuddy map
+				HtbtBuddyMap hbm = HtbtBuddyMap.getInstance();
+				hbm.put(new Host (s.getInetAddress(), Replication.HTBT_SND_PORT_NUMBER), null);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("IOException at Replication listener");
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Class not found at Replication listener");
 			e.printStackTrace();
 		}
 	}

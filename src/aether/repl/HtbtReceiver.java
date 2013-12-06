@@ -27,19 +27,17 @@ public class HtbtReceiver implements Runnable{
 			}			
 
 		} catch (SocketException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Socket Exception at HtbtReceiver");
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unknown host exception at HtbtReceiver");
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unsupported encoding exception at Htbt Receiver");
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("IOException at Htbt Receiver");
 			e.printStackTrace();
-			//System.out.println("Retrying ");
-			//continue;
 		}
 	}
 }

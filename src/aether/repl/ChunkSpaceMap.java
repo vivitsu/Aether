@@ -27,6 +27,13 @@ class ChunkSpaceMap implements Runnable{
 	ArrayList<NodeSpace> freeMemory;
 	int replPort;
 	NetMgr repl;
+	private static ChunkSpaceMap csm;
+	public static synchronized ChunkSpaceMap getInstance () {
+		if (csm == null) {
+			csm = new ChunkSpaceMap ();
+		}
+		return csm;
+	}
 	private static final Logger repllog = Logger.getLogger(ClusterMgr.class.getName());
 	/**
 	 * Get the node address details in the cluster where 
@@ -36,14 +43,14 @@ class ChunkSpaceMap implements Runnable{
 	 * the calling code by reporting it to the user.
 	 * */
 	
-	private void init () throws SocketException {
+	private synchronized  void init () throws SocketException {
 		 	replPort = ConfigMgr.getReplFactor();
 	        repl = new NetMgr (replPort);
 	        repl.setTimeout(5000);
 	        repllog.fine("Initialized ChunckSpaceMap");
 	    }
 		
-	public NodeSpace getStorageNode (long spaceRequired) throws NoSpaceAvailableException {
+	public synchronized NodeSpace getStorageNode (long spaceRequired) throws NoSpaceAvailableException {
 		
 		//iterate through the list and use the  
 		//first node where space is available.
@@ -58,12 +65,12 @@ class ChunkSpaceMap implements Runnable{
 	/**
 	 * adds the metadata into the data structure
 	 * */
-	public void put (InetAddress ipAddress, int port, long spaceAvailable) {
+	public synchronized void put (InetAddress ipAddress, int port, long spaceAvailable) {
 		freeMemory.add(new NodeSpace (ipAddress, port, spaceAvailable));
 	}
 
 
-	public void calculatefreeMemory()throws IOException {
+	public synchronized void calculatefreeMemory()throws IOException {
 		
 		InetAddress bAddr = NetMgr.getBroadcastAddr();
 		if (bAddr != null) {
@@ -76,7 +83,7 @@ class ChunkSpaceMap implements Runnable{
 	}
 	
 
-private void processMemorySpaceRequired(Message m) throws IOException
+private synchronized void processMemorySpaceRequired(Message m) throws IOException
 {
 	long totalspace = 0;
 	for (Path root : FileSystems.getDefault().getRootDirectories())
@@ -107,7 +114,7 @@ private void processMemorySpaceRequired(Message m) throws IOException
 }
 
 
-private void UpdateFreespace(Message m){
+private synchronized void UpdateFreespace(Message m){
 	
 		ControlMessage freespace = (ControlMessage)m;
 		InetAddress nodeInContext = freespace.getSourceIp();
@@ -116,7 +123,7 @@ private void UpdateFreespace(Message m){
 		
 }
 
-private void processspacemessage(Message m) throws IOException{
+private synchronized void processspacemessage(Message m) throws IOException{
 	
 	 repllog.fine("Processing space requirement message");
      ControlMessage ctrl = (ControlMessage) m;

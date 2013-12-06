@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import aether.io.Chunk;
 
@@ -18,12 +19,19 @@ import aether.io.Chunk;
  * 		replicated 
  * */
 class ChunkManager implements Runnable {
+	private static ChunkManager chunkMgr;
 	BlockingQueue chunkQueue;
 	Chunk[] chunkList;
 	ChunkSpaceMap csm;
 	public static Executor exec;
 	public static final int THREADS_IN_REPL_POOL = 10;		// number of threads in the thread pool used by replicator
 	
+	public static synchronized ChunkManager getInstance () {
+		if (chunkMgr == null) {
+			chunkMgr = new ChunkManager (new LinkedBlockingQueue(), ChunkSpaceMap.getInstance() );			
+		}
+		return chunkMgr;
+	}
 	
 	public ChunkManager (BlockingQueue b, ChunkSpaceMap c) {
 		csm = c;
@@ -44,19 +52,16 @@ class ChunkManager implements Runnable {
 				
 				
 				//replicate the chunk using a thread from the executor pool
-				exec.execute(cr);
-				
-				//TODO add the dest node as a chunk buddy 
-				//to maintain heartbeat with that node
+				exec.execute(cr);		
 				
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				System.out.println("Interrupted Exception at Chunk Manager");
 				e.printStackTrace();
 			} catch (NoSpaceAvailableException e) {
-				// TODO Auto-generated catch block
+				System.out.println("No Space Available exception at Chunk Manager");
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				System.out.println("IOException at Chunk Manager");
 				e.printStackTrace();
 			}
 			

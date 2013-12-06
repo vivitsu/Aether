@@ -36,19 +36,19 @@ public class HtbtSender implements Runnable {
 				Thread.currentThread().sleep(5000);
 			}
 		} catch (SocketException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Socket Exception at HtbtSender");
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unknown host exception at Htbt Sender");
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Unsupported Encoding exception at Htbt Sender");
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("IOException at Htbt sender");
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Interrupted exception at Htbt Sender");
 			e.printStackTrace();
 		}
 		
