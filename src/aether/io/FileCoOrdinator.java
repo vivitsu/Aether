@@ -83,7 +83,8 @@ public class FileCoOrdinator implements Runnable {
                 
                 ControlMessage req = (ControlMessage) netMgr.receive();
                 String file = req.ParseEControl();
-                
+                log.log(Level.FINE, "Received query for chunks of file {0}",
+                        file);
                 Integer[] chunks = null;
                 /*
                  * Replication repl = Replication.getInstance();
