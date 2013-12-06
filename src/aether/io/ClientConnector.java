@@ -51,7 +51,7 @@ public class ClientConnector implements Runnable {
     
     
     
-    {
+    static {
         log.setLevel(Level.INFO);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter());
