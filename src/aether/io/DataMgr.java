@@ -88,8 +88,7 @@ public class DataMgr implements Runnable {
                     continue;
                 } else {
                     
-                    log.log(Level.FINE, "Starting a thread to communicate with"
-                            + "the client on socket {0}", s);
+                    log.fine("Lauching client communicator");
                     ClientConnector cli = new ClientConnector (s, fileChunkMap);
                     Thread cliThread = new Thread(cli);
                     cliThread.start();
