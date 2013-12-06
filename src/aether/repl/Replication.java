@@ -16,8 +16,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import aether.io.Chunk;
 import aether.net.NetMgr;
@@ -51,6 +53,24 @@ public class Replication {
 		new Thread(r).start();
 
 		*/
+		HtbtBuddyMap hbm = new HtbtBuddyMap ();
+		try {
+			
+		} catch (Exception e) {
+			
+		}
+		
+		/*create the required data structures*/
+		HtbtSender s = new HtbtSender (hbm);		
+		HtbtReceiver r = new HtbtReceiver ();
+		ReplicationListener rl = new ReplicationListener ();
+		ChunkSpaceMap csm = new ChunkSpaceMap ();
+		ChunkManager cm = new ChunkManager (new LinkedBlockingQueue(), csm);
+		FileChunkMetadata fcm = new FileChunkMetadata ();
+		new Thread(s).start();
+		new Thread(r).start();
+		new Thread(rl).start();
+		
 	}
 }
 

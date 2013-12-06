@@ -34,7 +34,8 @@ class ChunkManager implements Runnable {
 		while (!Thread.currentThread().isInterrupted()) {
 			Chunk c;
 			try {
-				calculatefreeMemory();
+				
+				
 				//remove from the queue
 				c = (Chunk)chunkQueue.take();
 				NodeSpace node = csm.getStorageNode(c.getDataLength());
