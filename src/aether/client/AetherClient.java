@@ -57,6 +57,10 @@ public class AetherClient {
      */
     int port;
 
+    Socket clientSocket = new Socket();
+    ObjectInputStream ois;
+    ObjectOutputStream oos;
+
     /**
      * Logger
      */
@@ -280,12 +284,9 @@ public class AetherClient {
      * @return Array of {@link aether.cluster.ClusterTableRecord} objects
      * @throws IOException If the socket creation fails
      * @throws NullPointerException If the message received from the cluster is null
-     * @see #communicate(java.net.Socket, Object)
      * @see aether.net.ControlMessage#parseJControl()
      */
     public ClusterTableRecord[] getNodeList(InetAddress ip, ControlMessage cMsg) throws IOException {
-
-        Socket clusterSock;
 
         ClusterTableRecord[] tempRecords = null;
 
@@ -294,14 +295,15 @@ public class AetherClient {
             /* Bind a socket to the client's external IP. */
             //clusterSock = new Socket(myIp, port);
 
-            clusterSock = new Socket();
-
             /* Endpoint is the cluster node to be contacted. */
             InetSocketAddress endpoint = new InetSocketAddress(ip, this.port);
 
-            clusterSock.connect(endpoint, 1000);
+            clientSocket.connect(endpoint, 1000);
 
-            ControlMessage msg = (ControlMessage) communicate(clusterSock, cMsg);
+            oos = new ObjectOutputStream(clientSocket.getOutputStream());
+            ois = new ObjectInputStream(clientSocket.getInputStream());
+
+            ControlMessage msg = (ControlMessage) communicate(cMsg);
 
             if (msg != null) {
                 tempRecords = msg.parseJControl();
@@ -315,7 +317,6 @@ public class AetherClient {
 
         }
 
-        clusterSock.close();
         return tempRecords;
     }
 
@@ -340,23 +341,18 @@ public class AetherClient {
      * Communicate on the given socket by writing the given object to the socket and receiving the
      * response over the socket.
      *
-     * @param socket The socket on which to communicate
      * @param obj The object to send over the socket
      * @return The Object that was received over the socket
      * @throws IOException If socket communication fails
      */
-    public Object communicate(Socket socket, Object obj) throws IOException {
+    public Object communicate(Object obj) throws IOException {
 
-        logger.log(Level.FINE, "Communicating with node on " + socket.getInetAddress() + " by sending msg " + obj.toString());
-
-        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        logger.log(Level.FINE, "Communicating with node " + "by sending msg " + obj.toString());
 
         oos.writeObject(obj);
         oos.flush();
 
         logger.log(Level.FINE, "Waiting for response from node..");
-
-        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
         Object resp = null;
 
@@ -411,12 +407,11 @@ public class AetherClient {
                 ControlMessage readRequest = new ControlMessage('e', ip, filename);
 
                 /* Get the list of nodes that have chunks of the file. */
-                Socket socket = new Socket();
                 InetSocketAddress endpoint = new InetSocketAddress(ip, port);
 
-                socket.connect(endpoint, 1000);
+                clientSocket.connect(endpoint, 1000);
 
-                Object obj = communicate(socket, readRequest);
+                Object obj = communicate(readRequest);
 
                 if (obj instanceof HashMap) {
 
@@ -546,9 +541,7 @@ public class AetherClient {
 
         boolean status = false;
 
-        Socket writeSock = new Socket();
-        writeSock.connect(endpoint, 1000);
-
+        clientSocket.connect(endpoint, 1000);
         logger.log(Level.FINE, "Connected to endpoint. Converting to byte array..");
 
         BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -570,13 +563,12 @@ public class AetherClient {
 
         logger.log(Level.FINE, "Sending 'w' control message to node with filename " + filename + ":" + bytes.length);
 
-        ControlMessage recvMsg = (ControlMessage) communicate(writeSock, cMsg);
+        ControlMessage recvMsg = (ControlMessage) communicate(cMsg);
 
         if (recvMsg.getMessageSubtype() == 'k') {
 
             logger.log(Level.FINE, "Received ACK from node. Writing to socket..");
 
-            ObjectOutputStream oos = new ObjectOutputStream(writeSock.getOutputStream());
             oos.write(bytes);
             oos.flush();
 
@@ -604,7 +596,6 @@ public class AetherClient {
 
         }
 
-        writeSock.close();
         return status;
     }
 
