@@ -1,5 +1,5 @@
 package aether.repl;
-
+import aether.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -116,8 +116,10 @@ class CD {
 	}
 }*/
 class ChunkMetadata extends Chunk {
-	public ChunkMetadata () {
-		super();
+
+	public ChunkMetadata(String file, int id) {
+		super(file, id);
+		// TODO Auto-generated constructor stub
 	}
 	
 }

@@ -71,7 +71,7 @@ class ChunkReplicator implements Runnable {
 			//add the dest node into the Chunk 
 			//distribution data structure
 			CD cd = CD.getInstance();
-			cd.addChunk(chunk.getFileName(), new ChunkMetadata (), new Host (destIP, destPort));
+			cd.addChunk(chunk.getFileName(), new ChunkMetadata (null, sourcePort), new Host (destIP, destPort));
 			
 			//add the dest node as a chunk buddy 
 			//to maintain heartbeat with that node

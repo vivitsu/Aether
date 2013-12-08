@@ -334,6 +334,10 @@ public class ClientConnector implements Runnable {
         /* Now I just need to pass these chunks to the replication manager
          * and we are set. This final step cannot be completed till replication
          * manager defines the API
+         * 
+         * Replication repl = Replication.getInstance();
+         * repl.WriteChunks(chunks);
+            
          */
     }
     
@@ -358,6 +362,9 @@ public class ClientConnector implements Runnable {
         /*
          * Have to write the code to get the chunk from replication manager 
          * here. The API is not defined yet.
+         * 
+         * 
+         * 
          */
         
         oOut.writeObject(chunk);

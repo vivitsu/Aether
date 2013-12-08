@@ -7,6 +7,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import aether.io.Chunk;
 import aether.net.Message;
 import aether.net.NetMgr;
 
@@ -19,6 +20,15 @@ public class Replication {
 	public static int TIMEOUT_BEFORE_DEAD = 10000;	//milliseconds
 	public static int REPL_PORT_LISTENER = 44444;	//port where all nodes listen for file chunk transfer	
 	public static int REPL_MAIN_LISTENER = 34343;	//port where all the read requests arrive from other cluster nodes and clients
+	
+	/*
+	 * 
+	 * ********Start of Commenting
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
 	public static synchronized Replication getInstance () {
 		if (repl == null) {
 			repl = new Replication ();
@@ -38,6 +48,11 @@ public class Replication {
 		new Thread(r).start();
 		new Thread(rl).start();
 	}
+	
+	
+	******************End of Commenting */ 
+	
+
 	public void run () {
 		try {
 			DatagramSocket s = new DatagramSocket (Replication.REPL_MAIN_LISTENER, NetMgr.getLocalIp());
@@ -50,8 +65,8 @@ public class Replication {
 				String fileName = m.toString();
 				ArrayList<Integer> chunkIds = cd.getChunkIDForFile(fileName);
 				byte[] sendbuf = new byte[2048];
-				DatagramPacket dps = new DatagramPacket (chunkIds.toString());
-				s.send(dps);
+				//DatagramPacket dps = new DatagramPacket (chunkIds.toString());
+				//s.send(dps);
 			}
 		} catch (SocketException e) {
 
@@ -61,6 +76,23 @@ public class Replication {
 			e.printStackTrace();
 		}	
 	}
+	
+	 
+     
+      private Integer[] getChunkIds(String file){
+    	  Integer[] chunks = null;
+    	  return chunks;
+      }
+       
+      private void WriteChunks(Chunk chunks){
+    	  /*
+    	   * This function performs the write functionality
+    	   * It is responsible for the finding free space on the cluster nodes 
+    	   * and writing the data chunks*/
+    	  
+      }
+      
+      
 	/**
 	 * @param args
 	 */
