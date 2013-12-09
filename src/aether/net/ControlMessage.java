@@ -56,6 +56,9 @@ import java.util.LinkedList;
  *      Control message from client requesting a particular chunk
  * 'l': Chunk Node list message
  *      List of nodes and the chunks they are holding
+ * 'n': Node deletion message
+ *      Message sent by cluster manager to other cluster managers for deletion
+ *      of a particular node in the cluster table
  * 
  * 
  * @author aniket
@@ -264,5 +267,16 @@ public class ControlMessage extends Message {
         }
         
         return map;
+    }
+    
+    
+    /**
+     * Parse the control message with subtype 'n' to return the node id to be
+     * deleted from the cluster table
+     * @return  Integer node id to be deleted
+     */
+    public Integer parseNControl () {
+        
+        return Integer.parseInt(payload.getData());
     }
 }
