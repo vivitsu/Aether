@@ -560,6 +560,7 @@ public class ClusterMgr implements Runnable {
             /* Now probably we need to send the updated cluster table to each 
              * node
              */
+            printClusterView();
         } else {
             log.log(Level.FINE, "Could not find node {0}", nodeId);
         }
