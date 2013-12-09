@@ -492,6 +492,84 @@ public class ClusterMgr implements Runnable {
     
     
     
+    /**
+     * Prepare the payload for join message having all the records in the 
+     * cluster table in character form.
+     * @return  char array having all the records in cluster table
+     */
+    public String prepareJoinMessagePayload () {
+        
+        log.fine("Preparing to send the cluster table");
+        ClusterTableRecord[] tableRecs = clusterTable.getAllRecords();
+        String[] recStrings = new String[tableRecs.length];
+        
+        int i=0;
+        for (ClusterTableRecord r: tableRecs) {
+            recStrings[i++] = r.toDelimitedString();
+        }
+        
+        String s = "";
+        for (String recStr: recStrings) {
+            s = recStr + ";" + s;
+        }
+        
+        return s;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /**
+     * Process a node delete message we got from the cluster
+     * @param m     ControlMessage of type 'n'
+     */
+    private void processNodeDeleteRequest (Message m) {
+        
+        ControlMessage del = (ControlMessage) m;
+        Integer n = del.parseNControl();
+        removeFailedNode (n);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /**
+     * Remove the node from cluster table. This method should be called by
+     * the heartbeat monitor
+     * @param nodeId    Id of the failed node
+     */
+    private void removeFailedNode (Integer nodeId) {
+        
+        if (clusterTable.exists(nodeId)) {
+            log.log(Level.FINE,"Removing node {0}", nodeId);
+            clusterTable.deleteRecord(nodeId);
+            /* Now probably we need to send the updated cluster table to each 
+             * node
+             */
+        } else {
+            log.log(Level.FINE, "Could not find node {0}", nodeId);
+        }
+    }
+    
+    
+    
+    
+    
+    
 
     /**
      * This is a method which takes a message and calls an appropriate method
@@ -535,15 +613,12 @@ public class ClusterMgr implements Runnable {
             case 'c': /* A membership commit */
                         processMembershipCommit(m);
                         break;
+                
+            case 'n': /* Delete a node from cluster table */
+                        processNodeDeleteRequest(m);
+                        break;
         }
     }
-    
-    
-    
-    
-    
-    
-    
     
     
     
@@ -555,28 +630,30 @@ public class ClusterMgr implements Runnable {
     
     
     /**
-     * Prepare the payload for join message having all the records in the 
-     * cluster table in character form.
-     * @return  char array having all the records in cluster table
+     * Process the failure detected by heartbeat daemon
+     * @param id Id of the failed node
      */
-    public String prepareJoinMessagePayload () {
+    public void processDetectedFailure (Integer id) {
         
-        log.fine("Preparing to send the cluster table");
-        ClusterTableRecord[] tableRecs = clusterTable.getAllRecords();
-        String[] recStrings = new String[tableRecs.length];
-        
-        int i=0;
-        for (ClusterTableRecord r: tableRecs) {
-            recStrings[i++] = r.toDelimitedString();
+        try {
+            ControlMessage n = new ControlMessage ('n', 
+                    NetMgr.getBroadcastAddr(), id.toString());
+            comm.send(n);
+            removeFailedNode(id);
+            
+        } catch (IOException ex) {
+            
+            log.warning("Conveying detected failure to the cluster failed");
+            ex.printStackTrace();
         }
-        
-        String s = "";
-        for (String recStr: recStrings) {
-            s = recStr + ";" + s;
-        }
-        
-        return s;
     }
+    
+    
+    
+    
+    
+    
+
     
     
     
@@ -601,23 +678,12 @@ public class ClusterMgr implements Runnable {
     
     
     
-    /**
-     * Remove the node from cluster table. This method should be called by
-     * the heartbeat monitor
-     * @param nodeId    Id of the failed node
-     */
-    public void removeFailedNode (Integer nodeId) {
-        
-        if (clusterTable.exists(nodeId)) {
-            log.log(Level.FINE,"Removing node {0}", nodeId);
-            clusterTable.deleteRecord(nodeId);
-            /* Now probably we need to send the updated cluster table to each 
-             * node
-             */
-        } else {
-            log.log(Level.FINE, "Could not find node {0}", nodeId);
-        }
-    }
+    
+
+    
+    
+    
+
   
     
     @Override
