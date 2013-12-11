@@ -67,6 +67,8 @@ public class FileCoOrdinator implements Runnable {
         
         String s = "";
         for (Integer i:list) {
+            if (i == null)
+                continue;
             s = s + ":" + i.toString();
         }
         
