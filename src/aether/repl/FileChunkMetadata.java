@@ -77,11 +77,14 @@ class FileChunkMetadata {
 	public synchronized Integer[] getChunkIds (String f) {
 		ArrayList<ChunkMetadata> cList = fileChunkMap.get(f);
 		ArrayList<Integer> chunkIds = new ArrayList<Integer> ();
+		Integer[] arrList = new Integer[cList.size()];
+		int counter = 0;
 		for (Iterator iter = cList.iterator(); iter.hasNext() == true; ) {
 			ChunkMetadata cm = (ChunkMetadata) iter.next();
-			chunkIds.add(cm.getChunkId());
+			arrList[counter] = cm.getChunkId();
+			//chunkIds.add(cm.getChunkId());
 		}
-		Integer[] arrList = (Integer[]) chunkIds.toArray();
+		
 		return arrList;
 	}
 	
