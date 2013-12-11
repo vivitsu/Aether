@@ -130,7 +130,7 @@ public class Replication {
 	   * This function performs the write functionality
 	   * It is responsible for the finding free space on the cluster nodes 
 	   * and writing the data chunks*/
-      private void WriteChunks(Chunk[] chunks){
+      public void WriteChunks(Chunk[] chunks){
     	  ChunkManager cm = ChunkManager.getInstance();
     	  try {
 			cm.addToQueue(chunks);
