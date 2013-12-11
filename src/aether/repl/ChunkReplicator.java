@@ -68,7 +68,7 @@ class ChunkReplicator implements Runnable {
 			oos.flush();
 			oos.close();
 			
-			System.out.println("Sent chunk over socket "+chunk.getChunkName());
+			
 			/*/add the dest node into the Chunk 
 			//distribution data structure
 			CD cd = CD.getInstance();

@@ -41,8 +41,9 @@ class ChunkManager implements Runnable {
 	}
 	
 	public void run () {
+		System.out.println("Chunk Manager thread started");
 		while (!Thread.currentThread().isInterrupted()) {
-			System.out.println("In chunk mgr thread");
+			
 			
 			Chunk c;
 			try {
@@ -51,15 +52,15 @@ class ChunkManager implements Runnable {
 				//Thread.currentThread().sleep(5000);
 				
 				c = (Chunk)chunkQueue.take();
-				System.out.println("Sending chunk "+c.getChunkName());
-				//csm.calculatefreeMemory(); 					//call for free memory check
-				csm.put(InetAddress.getLocalHost(), 7653, 4556);
+				
+				csm.calculatefreeMemory(); 					//call for free memory check
+				/*csm.put(InetAddress.getLocalHost(), 7653, 4556);
 				csm.put(InetAddress.getLocalHost(), 7653, 4588);
 				csm.put(InetAddress.getLocalHost(), 7653, 4555);
 				csm.put(InetAddress.getLocalHost(), 7653, 4552);
 				csm.put(InetAddress.getLocalHost(), 7653, 4545);
 				csm.put(InetAddress.getLocalHost(), 7653, 4598);
-				System.out.println(InetAddress.getLocalHost());
+				System.out.println(InetAddress.getLocalHost());*/
 				NodeSpace node = csm.getStorageNode(c.getDataLength());
 				ChunkReplicator cr = new ChunkReplicator (c, node.getIPAddress(), node.getPort());
 				
