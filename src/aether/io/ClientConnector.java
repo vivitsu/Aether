@@ -158,12 +158,19 @@ public class ClientConnector implements Runnable {
             LinkedList<InetAddress> nodes = map.get(i);
             String addresses = "";
             for (InetAddress add: nodes) {
-                addresses = addresses + ":" + 
-                        add.toString().replaceFirst(".*/", "");
+                if (addresses.equals("")) {
+                    addresses = add.toString().replaceFirst(".*/", "");
+                } else {
+                    addresses = addresses + ":"
+                            + add.toString().replaceFirst(".*/", "");
+                }
             }
             
-            
-            load = load + "%" + i.toString() + "|" + addresses;
+            if (load.equals("")) {
+                load = i.toString() + "|" + addresses;
+            } else {
+                load = load + "%" + i.toString() + "|" + addresses;
+            }
         }
         
         return load;
@@ -212,7 +219,7 @@ public class ClientConnector implements Runnable {
             log.log(Level.FINE, "Querying for the chunk list of file {0}", 
                     filename);
             netmgr.send(probe, ConfigMgr.getCoOrdPort());
-            
+            netmgr.setTimeout(1000);
             HashMap<Integer, LinkedList<InetAddress>> chunkMap = 
                     new HashMap<>();
             
@@ -243,6 +250,9 @@ public class ClientConnector implements Runnable {
                     /* Prepare a map in which chunkId is key and InetAddress
                      * list is value.
                      */
+                    if (id.equals("")) {
+                        continue;
+                    }
                     Integer i = Integer.parseInt(id);
                     if (chunkMap.containsKey(i)) {
                         LinkedList<InetAddress> foo = chunkMap.get(i);
