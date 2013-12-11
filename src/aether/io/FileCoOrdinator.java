@@ -7,6 +7,7 @@ package aether.io;
 import aether.conf.ConfigMgr;
 import aether.net.ControlMessage;
 import aether.net.NetMgr;
+import aether.repl.Replication;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -86,10 +87,10 @@ public class FileCoOrdinator implements Runnable {
                 log.log(Level.FINE, "Received query for chunks of file {0}",
                         file);
                 Integer[] chunks = null;
-                /*
-                 * Replication repl = Replication.getInstance();
-                 * chunks = repl.getChunkIds(file);
-                 */ 
+                
+                Replication repl = Replication.getInstance();
+                chunks = repl.getChunkIds(file);
+                 
                 
                 if (chunks != null && chunks.length > 0) {
                     /* 
