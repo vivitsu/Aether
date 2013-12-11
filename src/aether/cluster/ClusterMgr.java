@@ -656,6 +656,15 @@ public class ClusterMgr implements Runnable {
     
 
     
+    /**
+     * Return the array of cluster table records
+     * @return  array of current cluster table records in cluster table
+     */
+    public ClusterTableRecord[] getClusterTableRecords () {
+        
+        return clusterTable.getAllRecords();
+    }
+    
     
     
     
