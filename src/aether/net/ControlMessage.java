@@ -255,6 +255,9 @@ public class ControlMessage extends Message {
         String load = payload.getData();
         String[] records = load.split("%");
         for (String rec : records) {
+            if (rec.equals("")) {
+                continue;
+            }
             String[] tokens = rec.split("|");
             Integer chunkId = Integer.parseInt(tokens[0]);
             String[] ips = tokens[1].split(":");
