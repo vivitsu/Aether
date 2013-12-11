@@ -28,14 +28,15 @@ class ChunkSpaceMap implements Runnable{
 	int replPort;
 	NetMgr repl;
 	private static ChunkSpaceMap csm;
-	public static synchronized ChunkSpaceMap getInstance () {
+	public static synchronized ChunkSpaceMap getInstance () throws SocketException {
 		if (csm == null) {
 			csm = new ChunkSpaceMap ();
 		}
 		return csm;
 	}
-	public ChunkSpaceMap () {
+	public ChunkSpaceMap () throws SocketException {
 		freeMemory = new ArrayList<NodeSpace> ();
+		this.init();
 	}
 	private static final Logger repllog = Logger.getLogger(ClusterMgr.class.getName());
 	/**
@@ -47,7 +48,7 @@ class ChunkSpaceMap implements Runnable{
 	 * */
 	
 	private synchronized  void init () throws SocketException {
-		 	replPort = ConfigMgr.getReplFactor();
+		 	replPort = ConfigMgr.getReplPort();
 	        repl = new NetMgr (replPort);
 	        repl.setTimeout(5000);
 	        repllog.fine("Initialized ChunckSpaceMap");
