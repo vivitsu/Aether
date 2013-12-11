@@ -81,8 +81,8 @@ class FileChunkMetadata {
 			ChunkMetadata cm = (ChunkMetadata) iter.next();
 			chunkIds.add(cm.getChunkId());
 		}
-		
-		return (Integer[]) chunkIds.toArray();
+		Integer[] arrList = (Integer[]) chunkIds.toArray();
+		return arrList;
 	}
 	
 	/*Returns the contents of the hash map as a set. Useful 
