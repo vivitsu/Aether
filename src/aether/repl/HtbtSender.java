@@ -28,22 +28,23 @@ public class HtbtSender implements Runnable {
 		try {
 			ds = new DatagramSocket(Replication.HTBT_SND_PORT_NUMBER);
 			byte[] send = new byte[256];
-			while (true) {
+			while (!Thread.currentThread().isInterrupted()) {
 
 				for (Entry<Host, HostDetails> entry : buddymap.getBuddyMapSet()) {
 
-					String mess = "from Sender";// + Integer.toString(port);
+					String mess = "Heartbeat";// + Integer.toString(port);
 					send = mess.getBytes("UTF-8");
 					DatagramPacket dps = new DatagramPacket(send, send.length,
 							entry.getKey().getIPAddress(), entry.getKey().getPort());
-					System.out.println(entry.getKey().getIPAddress());
+					//System.out.println(entry.getKey().getIPAddress());
 					ds.send(dps);
+					System.out.println("Sent heartbeat to "+entry.getKey().getIPAddress());
 				}
-				System.out.println("Sent from sender");
+				
 				
 				
 				////////////////////sender start
-				FileChunkMetadata fcm = FileChunkMetadata.getInstance();
+				/*FileChunkMetadata fcm = FileChunkMetadata.getInstance();
 				Set<Map.Entry<String, ArrayList<ChunkMetadata>>> entryFiles = fcm.getFileChunkMetadataSet();
 					
 				for (Entry<Host, HostDetails> entryHost : buddymap.getBuddyMapSet()) {
@@ -76,7 +77,7 @@ public class HtbtSender implements Runnable {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+				*/
 				////////////////////////////receiver end
 				
 				Thread.currentThread().sleep(5000);

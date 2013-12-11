@@ -23,7 +23,7 @@ public class HtbtReceiver implements Runnable{
 				buddyMap.saveTime (new Host(dpr.getAddress(),dpr.getPort()), new HostDetails (System.currentTimeMillis()));
 				String message = new String(receive, 0, dpr.getLength(),
 						"UTF-8");
-				System.out.println("S : got " + message);
+				System.out.println("Got Heartbeat from " + dpr.getAddress());
 			}			
 
 		} catch (SocketException e) {

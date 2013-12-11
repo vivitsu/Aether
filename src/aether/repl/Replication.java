@@ -1,12 +1,9 @@
 package aether.repl;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.net.SocketException;
 
+import aether.cluster.ClusterMgr;
+import aether.cluster.ClusterTableRecord;
 import aether.io.Chunk;
 
 
@@ -31,16 +28,15 @@ public class Replication {
 		return repl;
 	}
 	public Replication () {
-		//HtbtBuddyMap hbm = new HtbtBuddyMap ();
-		//hbm.put(new Host(), null);
-		//HtbtSender s = new HtbtSender (hbm);		
-		//HtbtReceiver r = new HtbtReceiver ();
+		HtbtBuddyMap hbm = HtbtBuddyMap.getInstance();		
+		HtbtSender s = new HtbtSender (hbm);		
+		HtbtReceiver r = new HtbtReceiver ();
 		ReplicationListener rl = ReplicationListener.getInstance();
 		ChunkSpaceMap csm = new ChunkSpaceMap ();
 		ChunkManager cm = ChunkManager.getInstance();
 		FileChunkMetadata fcm = new FileChunkMetadata ();
-		//new Thread(s).start();
-		//new Thread(r).start();
+		new Thread(s).start();
+		new Thread(r).start();
 		new Thread(rl).start();
 		new Thread(cm).start();
 	}
@@ -149,6 +145,33 @@ public class Replication {
     	  FileChunkMetadata fcm = FileChunkMetadata.getInstance();
     	  chunk = fcm.retrieveChunk(f, c);
     	  return chunk;
+      }
+      
+      
+      /**
+       * This function imports the entries from cluster manager 
+       * into the buddy map. This is further used to maintain 
+       * heartbeat from current node to each other node in 
+       * the data structure. 
+       * */
+      public void importClusterRecs () {
+    	  ClusterMgr cm;
+		try {
+			cm = ClusterMgr.getInstance();
+			ClusterTableRecord[] ctr = cm.getClusterTableRecords();
+			HtbtBuddyMap hbm = HtbtBuddyMap.getInstance();
+			for (int i = 0; i < ctr.length; i++) {
+				hbm.put(new Host (ctr[i].getNodeIp(), Replication.HTBT_SND_PORT_NUMBER), null);
+			}
+			
+		} catch (UnsupportedOperationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	  
       }
 	/**
 	 * @param args
