@@ -120,6 +120,8 @@ public class Replication {
     	  Integer[] chunks = null;
     	  FileChunkMetadata fcm = FileChunkMetadata.getInstance();
     	  chunks = fcm.getChunkIds(file);
+    	  if (chunks == null)
+    		  return chunks = new Integer[0];
     	  return chunks;
       }
       
