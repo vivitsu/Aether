@@ -159,8 +159,9 @@ private synchronized void processspacemessage(Message m) throws IOException{
 	
 	@Override
 	public void run() {
-		try {
-			
+		while(true){
+			try {
+				
 			Message spacerequest = repl.receive();
 			processspacemessage(spacerequest);
 		} catch (IOException e) {
@@ -168,7 +169,7 @@ private synchronized void processspacemessage(Message m) throws IOException{
 			repllog.warning("Did not receive the space Map messages");
 		}
 	
-		
+		}
 	}		
 }
 
