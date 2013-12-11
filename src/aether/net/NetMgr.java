@@ -125,6 +125,25 @@ public class NetMgr {
     
     
     
+        /**
+     * Send a message over the network
+     * @param m     Message m to be sent
+     * @throws IOException 
+     */
+    public void send (Message m, int p) throws IOException {
+        byte[] datagramPayload = serialize(m);
+        DatagramPacket packet = new DatagramPacket(datagramPayload, 
+                datagramPayload.length, m.getDestIp(), p);
+        
+        
+        log.log(Level.FINE, "Sending {0} bytes to node {1} port: {2}", 
+                new Object[]{ datagramPayload.length, 
+                    m.getDestIp().toString().replaceFirst(".*/", ""), 
+                    p});
+        socket.send(packet);
+    }
+    
+    
     /**
      * Receive message from the network
      * @return  Received message. null on failure
