@@ -1,6 +1,7 @@
 package aether.repl;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -21,7 +22,7 @@ import aether.io.Chunk;
 class ChunkManager implements Runnable {
 	private static ChunkManager chunkMgr;
 	BlockingQueue chunkQueue;
-	Chunk[] chunkList;
+	//Chunk[] chunkList;
 	ChunkSpaceMap csm;
 	public static Executor exec;
 	public static final int THREADS_IN_REPL_POOL = 10;		// number of threads in the thread pool used by replicator
@@ -41,18 +42,32 @@ class ChunkManager implements Runnable {
 	
 	public void run () {
 		while (!Thread.currentThread().isInterrupted()) {
+			System.out.println("In chunk mgr thread");
+			
 			Chunk c;
 			try {
 				//calculatefreeMemory();
 				//remove from the queue
+				//Thread.currentThread().sleep(5000);
+				
 				c = (Chunk)chunkQueue.take();
-				csm.calculatefreeMemory(); 					//call for free memory check
+				System.out.println("Sending chunk "+c.getChunkName());
+				//csm.calculatefreeMemory(); 					//call for free memory check
+				csm.put(InetAddress.getLocalHost(), 7653, 4556);
+				csm.put(InetAddress.getLocalHost(), 7653, 4588);
+				csm.put(InetAddress.getLocalHost(), 7653, 4555);
+				csm.put(InetAddress.getLocalHost(), 7653, 4552);
+				csm.put(InetAddress.getLocalHost(), 7653, 4545);
+				csm.put(InetAddress.getLocalHost(), 7653, 4598);
+				System.out.println(InetAddress.getLocalHost());
 				NodeSpace node = csm.getStorageNode(c.getDataLength());
 				ChunkReplicator cr = new ChunkReplicator (c, node.getIPAddress(), node.getPort());
 				
 				
 				//replicate the chunk using a thread from the executor pool
-				exec.execute(cr);		
+				exec.execute(cr);
+				
+				System.out.println("Sending chunk "+c.getChunkName());
 				
 			} catch (InterruptedException e) {
 				System.out.println("Interrupted Exception at Chunk Manager");
@@ -66,6 +81,7 @@ class ChunkManager implements Runnable {
 			}
 			
 		}
+		
 	}
 	
 	/**
@@ -84,14 +100,14 @@ class ChunkManager implements Runnable {
 	 * gets the chunk array from 
 	 * the client component process
 	 * */
-	public void getChunkArray (Chunk[] chunkArr) {
+	/*public void getChunkArray (Chunk[] chunkArr) {
 		chunkList = chunkArr;
-	}
+	}*/
 	/**
 	 * sets up the blocking queue of chunks 
 	 * by importing chunks from the array into the queue 
 	 * */
-	public void setupQueue () throws InterruptedException {
+	public synchronized void addToQueue (Chunk[] chunkList) throws InterruptedException {
 		try {
 			for (int i = 0; i < chunkList.length; i++) {
 				chunkQueue.put(chunkList[i]);
@@ -99,5 +115,6 @@ class ChunkManager implements Runnable {
 		} catch (InterruptedException e) {
 			throw e;
 		}
+		System.out.println("Added the chunks to the queue");
 	}
 }

@@ -59,16 +59,17 @@ class ChunkReplicator implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}*/
-		int sourcePort = 44442;
+				
 		try {
-			Socket s = new Socket (NetMgr.getLocalIp(), sourcePort);
+			Socket s = new Socket (destIP, destPort);
 			OutputStream os = s.getOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(os);
 			oos.writeObject(chunk);
 			oos.flush();
 			oos.close();
 			
-			//add the dest node into the Chunk 
+			System.out.println("Sent chunk over socket "+chunk.getChunkName());
+			/*/add the dest node into the Chunk 
 			//distribution data structure
 			CD cd = CD.getInstance();
 			cd.addChunk(chunk.getFileName(), new ChunkMetadata (null, sourcePort), new Host (destIP, destPort));
@@ -76,11 +77,12 @@ class ChunkReplicator implements Runnable {
 			//add the dest node as a chunk buddy 
 			//to maintain heartbeat with that node
 			HtbtBuddyMap hbm = HtbtBuddyMap.getInstance ();
-			hbm.put(new Host (destIP, destPort), null);
+			hbm.put(new Host (destIP, destPort), null);*/
 			
 		} catch (IOException e) {
 			System.out.println("IOException at Chunk replicator");
 			e.printStackTrace();
 		}
+		System.out.println("Sent the chunk " +chunk.getChunkName() );
 	}
 }

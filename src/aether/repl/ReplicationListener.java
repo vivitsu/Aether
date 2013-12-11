@@ -41,7 +41,7 @@ public class ReplicationListener implements Runnable {
 			}
 			
 			fos.close();*/
-			
+			System.out.println("Started the Replication listener thread");
 			ServerSocket socketListener = new ServerSocket (Replication.REPL_PORT_LISTENER);
 			while (!Thread.currentThread().isInterrupted()) {
 				Socket s = socketListener.accept();
@@ -55,13 +55,16 @@ public class ReplicationListener implements Runnable {
 				oos.close();
 				ois.close();
 				
-				//Update the local data structure FileChunk Metadata structure
+				System.out.println("Got the chunk "+c.getChunkName() + "and wrote to local machine");
+				
+				/*/Update the local data structure FileChunk Metadata structure
 				FileChunkMetadata fcm = FileChunkMetadata.getInstance();
-				fcm.addChunk(c.getFileName(), c);
+				fcm.addChunk(c.getFileName(), new ChunkMetadata(c));
 				
 				//Update the HtbtBuddy map
 				HtbtBuddyMap hbm = HtbtBuddyMap.getInstance();
-				hbm.put(new Host (s.getInetAddress(), Replication.HTBT_SND_PORT_NUMBER), null);
+				hbm.put(new Host (s.getInetAddress(), Replication.HTBT_SND_PORT_NUMBER), null);*/
+				
 			}
 		} catch (IOException e) {
 			System.out.println("IOException at Replication listener");

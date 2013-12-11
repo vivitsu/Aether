@@ -34,6 +34,9 @@ class ChunkSpaceMap implements Runnable{
 		}
 		return csm;
 	}
+	public ChunkSpaceMap () {
+		freeMemory = new ArrayList<NodeSpace> ();
+	}
 	private static final Logger repllog = Logger.getLogger(ClusterMgr.class.getName());
 	/**
 	 * Get the node address details in the cluster where 

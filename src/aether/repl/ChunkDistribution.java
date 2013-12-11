@@ -12,28 +12,7 @@ import aether.io.Chunk;
  * a new file chunk is sent to a node and 
  * when ever a node fails 
  * */
-class ChunkDistribution {
-	//Map<FileChunkInfo, Host> hostFileChunks;
-	private static ChunkDistribution cd;
-	public ChunkDistribution () {
-	}
-	 public static synchronized ChunkDistribution getInstance () {
-		 if (cd == null) {
-			 cd = new ChunkDistribution ();
-		 }
-		 return cd;
-	}
-	public void addFileChunkInfo (Host h, String f, ChunkMetadata c) {
-		
-	}
-	public void addChunk (Host h, Chunk c) {
-		
-	}
-	/*public ArrayList<Integer> getChunkIDs (String f) {
-		
-		
-	}*/
-}
+
 class CD {
 	private static CD chunkDist;
 	String[] fileNames;
@@ -115,11 +94,29 @@ class CD {
 		else return chunkID;
 	}
 }*/
-class ChunkMetadata extends Chunk {
 
-	public ChunkMetadata(String file, int id) {
-		super(file, id);
-		// TODO Auto-generated constructor stub
+/**
+ * This class stores the metadata about the chunks in 
+ * a class. This object is further used in different places
+ * instead of storing the entire chunk in the data
+ * structure.
+ * */
+class ChunkMetadata  {
+	String chunkName;
+	String fileName;
+	int chunkId;
+	public ChunkMetadata(Chunk c) {
+		chunkName = c.getChunkName();
+		fileName = c.getFileName();
+		chunkId = c.getChunkId();
 	}
-	
+	public String getChunkName () {
+		return chunkName;
+	}
+	public String getFileName () {
+		return fileName;
+	}
+	public int getChunkId () {
+		return chunkId;
+	}
 }

@@ -1,12 +1,19 @@
 package aether.repl;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class HtbtSender implements Runnable {
 	HtbtBuddyMap buddymap;
@@ -33,6 +40,45 @@ public class HtbtSender implements Runnable {
 					ds.send(dps);
 				}
 				System.out.println("Sent from sender");
+				
+				
+				////////////////////sender start
+				FileChunkMetadata fcm = FileChunkMetadata.getInstance();
+				Set<Map.Entry<String, ArrayList<ChunkMetadata>>> entryFiles = fcm.getFileChunkMetadataSet();
+					
+				for (Entry<Host, HostDetails> entryHost : buddymap.getBuddyMapSet()) {
+					Host h = entryHost.getKey();
+					ArrayList<String> fileList = fcm.getFileList();
+					Socket s = new Socket (h.getIPAddress(), UpdaterReceiver.UPD_RCV_PORT);
+					
+					ObjectOutputStream oos = new ObjectOutputStream (s.getOutputStream());
+					oos.writeObject(fcm);
+					
+				}
+				/////////////////////////////sender end
+				
+				////////////////////////////receiver start
+				
+				ServerSocket ss = new ServerSocket (UpdaterReceiver.UPD_RCV_PORT);
+				Socket sock = ss.accept();
+				ObjectInputStream ois = new ObjectInputStream (sock.getInputStream());
+				try {
+					FileChunkMetadata fcmeta = FileChunkMetadata.getInstance();
+					FileChunkMetadata buddyMetadata = (FileChunkMetadata) ois.readObject();
+					for (Entry<String, ArrayList<ChunkMetadata>> entry : buddyMetadata.getFileChunkMetadataSet()) {
+						if (fcmeta.fileChunkMap.containsKey(entry.getKey())) {
+							ArrayList<ChunkMetadata> cmlist = fcmeta.fileChunkMap.get(entry.getKey());
+							cmlist.addAll(entry.getValue());
+							
+						}
+					}
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				////////////////////////////receiver end
+				
 				Thread.currentThread().sleep(5000);
 			}
 		} catch (SocketException e) {

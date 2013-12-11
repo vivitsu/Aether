@@ -1,15 +1,13 @@
 package aether.repl;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
-import java.util.ArrayList;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import aether.io.Chunk;
-import aether.net.Message;
-import aether.net.NetMgr;
 
 
 public class Replication {
@@ -23,12 +21,9 @@ public class Replication {
 	
 	/*
 	 * 
-	 * ********Start of Commenting
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
+	 * The getinstance will be called from ClusterMgr code
+	 * and will start an instance of the Replication class. 
+	 */
 	public static synchronized Replication getInstance () {
 		if (repl == null) {
 			repl = new Replication ();
@@ -36,25 +31,27 @@ public class Replication {
 		return repl;
 	}
 	public Replication () {
-		HtbtBuddyMap hbm = new HtbtBuddyMap ();
+		//HtbtBuddyMap hbm = new HtbtBuddyMap ();
 		//hbm.put(new Host(), null);
-		HtbtSender s = new HtbtSender (hbm);		
-		HtbtReceiver r = new HtbtReceiver ();
+		//HtbtSender s = new HtbtSender (hbm);		
+		//HtbtReceiver r = new HtbtReceiver ();
 		ReplicationListener rl = ReplicationListener.getInstance();
 		ChunkSpaceMap csm = new ChunkSpaceMap ();
-		ChunkManager cm = new ChunkManager (new LinkedBlockingQueue(), csm);
+		ChunkManager cm = ChunkManager.getInstance();
 		FileChunkMetadata fcm = new FileChunkMetadata ();
-		new Thread(s).start();
-		new Thread(r).start();
+		//new Thread(s).start();
+		//new Thread(r).start();
 		new Thread(rl).start();
+		new Thread(cm).start();
 	}
 	
 	
-	******************End of Commenting */ 
+	 
+	
 	
 
 	public void run () {
-		try {
+		/*try {
 			DatagramSocket s = new DatagramSocket (Replication.REPL_MAIN_LISTENER, NetMgr.getLocalIp());
 			CD cd = CD.getInstance();
 			while (!Thread.currentThread().isInterrupted()) {
@@ -74,25 +71,85 @@ public class Replication {
 		} catch (IOException e) {
 
 			e.printStackTrace();
-		}	
+		}*/	
 	}
+	/*public Replication () {
+		Chunk[] chunks = new Chunk[4];
+		String test = "This is a test : Devesh and Heramb";
+		System.out.println("This is a test : Devesh and Heramb");
+		chunks[0] = new Chunk ("filename.txt", 5, test.getBytes());
+		chunks[1] = new Chunk ("filename.txt", 6, test.getBytes());
+		chunks[2] = new Chunk ("filename.txt", 8, test.getBytes());
+		chunks[3] = new Chunk ("filename.txt", 9, test.getBytes());
+		//this.WriteChunks(chunks);
+		FileChunkMetadata fcm = FileChunkMetadata.getInstance();
+		fcm.addChunk("filename.txt", new ChunkMetadata (chunks[0]));
+		fcm.addChunk("filename.txt", new ChunkMetadata (chunks[1]));
+		fcm.addChunk("filename.txt", new ChunkMetadata (chunks[2]));
+		fcm.addChunk("filename.txt", new ChunkMetadata (chunks[3]));
+		try {
+			FileOutputStream fos = new FileOutputStream (new File ("filename.txt5"));
+			ObjectOutputStream oos = new ObjectOutputStream (fos);
+			oos.writeObject(chunks[0]);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}*/
 	
+	/*public static void main (String[] args) {
+		Replication r = new Replication ();
+		
+		Chunk[] chunks = new Chunk[4];
+		String test = "This is a test : Devesh and Heramb";
+		System.out.println("This is a test : Devesh and Heramb");
+		chunks[0] = new Chunk ("filename.txt", 5, test.getBytes());
+		chunks[1] = new Chunk ("filename.txt", 6, test.getBytes());
+		chunks[2] = new Chunk ("filename.txt", 8, test.getBytes());
+		chunks[3] = new Chunk ("filename.txt", 9, test.getBytes());
+		r.WriteChunks(chunks);
+		
+		//ChunkManager cm = ChunkManager.getInstance();
+		//new Thread(cm).start();
+		//r.getChunk("filename.txt", "filename.txt5");
+		 
+	}*/
 	 
      
       private Integer[] getChunkIds(String file){
     	  Integer[] chunks = null;
+    	  FileChunkMetadata fcm = FileChunkMetadata.getInstance();
+    	  chunks = fcm.getChunkIds(file);
     	  return chunks;
       }
-       
-      private void WriteChunks(Chunk chunks){
-    	  /*
-    	   * This function performs the write functionality
-    	   * It is responsible for the finding free space on the cluster nodes 
-    	   * and writing the data chunks*/
+      
+      /*
+	   * This function performs the write functionality
+	   * It is responsible for the finding free space on the cluster nodes 
+	   * and writing the data chunks*/
+      private void WriteChunks(Chunk[] chunks){
+    	  ChunkManager cm = ChunkManager.getInstance();
+    	  try {
+			cm.addToQueue(chunks);
+		} catch (InterruptedException e) {
+			System.out.println("Could not add the chunks from array to queue");
+			e.printStackTrace();
+		}
     	  
       }
-      
-      
+      /*
+       * This function provides an API to the caller who might 
+       * want a chunk from a particular node 
+       * */
+      public Chunk getChunk (String f, String c) {
+    	  Chunk chunk;
+    	  FileChunkMetadata fcm = FileChunkMetadata.getInstance();
+    	  chunk = fcm.retrieveChunk(f, c);
+    	  return chunk;
+      }
 	/**
 	 * @param args
 	 */
