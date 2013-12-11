@@ -76,8 +76,10 @@ class FileChunkMetadata {
 	 * */
 	public synchronized Integer[] getChunkIds (String f) {
 		ArrayList<ChunkMetadata> cList = fileChunkMap.get(f);
-		ArrayList<Integer> chunkIds = new ArrayList<Integer> ();
-		Integer[] arrList = new Integer[cList.size()];
+		
+		if (cList != null) {
+			Integer[] arrList = new Integer[cList.size()];
+		
 		int counter = 0;
 		for (Iterator iter = cList.iterator(); iter.hasNext() == true; ) {
 			ChunkMetadata cm = (ChunkMetadata) iter.next();
@@ -90,6 +92,8 @@ class FileChunkMetadata {
 		}
 		
 		return arrList;
+		}
+		return new Integer [0];
 	}
 	
 	/*Returns the contents of the hash map as a set. Useful 
