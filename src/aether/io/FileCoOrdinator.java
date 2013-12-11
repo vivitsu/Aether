@@ -84,6 +84,9 @@ public class FileCoOrdinator implements Runnable {
             try {
                 
                 ControlMessage req = (ControlMessage) netMgr.receive();
+                if (req.getSourceId() == ConfigMgr.getNodeId()) {
+                    continue;
+                }
                 String file = req.ParseEControl();
                 log.log(Level.FINE, "Received query for chunks of file {0}",
                         file);
@@ -99,7 +102,7 @@ public class FileCoOrdinator implements Runnable {
                      */
                     ControlMessage ack = new ControlMessage ('k', 
                             req.getSourceIp(), prepareChunkListPayload(chunks));
-                    netMgr.send(ack);
+                    netMgr.send(ack, ConfigMgr.getDataPort());
                 }
                 
                 
