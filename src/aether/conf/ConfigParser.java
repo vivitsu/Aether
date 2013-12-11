@@ -44,7 +44,7 @@ public class ConfigParser {
      */
     public HashMap<String,String> populate () {
         
-        HashMap<String,String> configDict = new HashMap<String,String>();
+        HashMap<String,String> configDict = new HashMap<>();
         String line;
         
         try {
