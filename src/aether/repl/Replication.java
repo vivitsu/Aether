@@ -21,13 +21,13 @@ public class Replication {
 	 * The getinstance will be called from ClusterMgr code
 	 * and will start an instance of the Replication class. 
 	 */
-	public static synchronized Replication getInstance () {
+	public static synchronized Replication getInstance () throws SocketException {
 		if (repl == null) {
 			repl = new Replication ();
 		}
 		return repl;
 	}
-	public Replication () {
+	public Replication () throws SocketException{
 		HtbtBuddyMap hbm = HtbtBuddyMap.getInstance();		
 		HtbtSender s = new HtbtSender (hbm);		
 		HtbtReceiver r = new HtbtReceiver ();
@@ -39,6 +39,7 @@ public class Replication {
 		new Thread(r).start();
 		new Thread(rl).start();
 		new Thread(cm).start();
+		new Thread(csm).start();
 	}
 	
 	
