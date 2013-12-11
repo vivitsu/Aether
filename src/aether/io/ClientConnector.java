@@ -8,6 +8,7 @@ import aether.cluster.ClusterMgr;
 import aether.conf.ConfigMgr;
 import aether.net.ControlMessage;
 import aether.net.NetMgr;
+import aether.repl.Replication;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -335,6 +336,8 @@ public class ClientConnector implements Runnable {
          * and we are set. This final step cannot be completed till replication
          * manager defines the API
          */
+        Replication repl = Replication.getInstance();
+        repl.WriteChunks(chunks);
     }
     
     
@@ -359,6 +362,9 @@ public class ClientConnector implements Runnable {
          * Have to write the code to get the chunk from replication manager 
          * here. The API is not defined yet.
          */
+          Replication repl = Replication.getInstance();
+          chunk = repl.getChunk(tokens[0], chunkName);
+         
         
         oOut.writeObject(chunk);
         oOut.flush();
