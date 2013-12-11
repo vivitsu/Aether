@@ -49,10 +49,10 @@ class ChunkManager implements Runnable {
 			try {
 				//calculatefreeMemory();
 				//remove from the queue
-				//Thread.currentThread().sleep(5000);
+				
 				csm.calculatefreeMemory(); 					//call for free memory check
 				c = (Chunk)chunkQueue.take();
-				
+				Thread.currentThread().sleep(5000);
 				
 				/*csm.put(InetAddress.getLocalHost(), 7653, 4556);
 				csm.put(InetAddress.getLocalHost(), 7653, 4588);
