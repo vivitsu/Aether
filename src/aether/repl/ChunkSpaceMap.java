@@ -63,8 +63,10 @@ class ChunkSpaceMap implements Runnable{
 		
 		//iterate through the list and use the  
 		//first node where space is available.
+		System.out.println("Space required for file = " + spaceRequired);
 		for (Iterator<NodeSpace> iter = freeMemory.iterator(); iter.hasNext() != false; ) {
 			NodeSpace ns = iter.next();
+			
 			if (ns.getAvailableSpace() > spaceRequired) {
 				return ns;
 			}
@@ -76,6 +78,7 @@ class ChunkSpaceMap implements Runnable{
 	 * */
 	public synchronized void put (InetAddress ipAddress, int port, long spaceAvailable) {
 		freeMemory.add(new NodeSpace (ipAddress, port, spaceAvailable));
+		System.out.println("Free space "+ spaceAvailable + " at "+ipAddress);
 	}
 
 
