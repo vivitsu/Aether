@@ -81,7 +81,11 @@ class FileChunkMetadata {
 		int counter = 0;
 		for (Iterator iter = cList.iterator(); iter.hasNext() == true; ) {
 			ChunkMetadata cm = (ChunkMetadata) iter.next();
-			arrList[counter] = cm.getChunkId();
+			if (new Integer (cm.getChunkId()) != null) {
+				arrList[counter] = cm.getChunkId();
+			} 
+			counter++;
+			
 			//chunkIds.add(cm.getChunkId());
 		}
 		
