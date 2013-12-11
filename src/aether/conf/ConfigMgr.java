@@ -223,4 +223,47 @@ public class ConfigMgr {
         Integer port = Integer.parseInt(configDict.get("coOrdPort"));
         return port.intValue();
     }
+
+    /* Client methods. */
+
+    public static InetAddress getPrimaryIP () {
+
+        InetAddress primaryIp = null;
+
+        try {
+            primaryIp = InetAddress.getByName(configDict.get("primaryIp"));
+        } catch (UnknownHostException e) {
+            System.out.println("[ERROR]: Error, could not get primary IP.");
+            e.printStackTrace();
+        }
+
+        return primaryIp;
+    }
+
+    public static InetAddress getSecondaryIP () {
+
+        InetAddress secIp = null;
+
+        try {
+            secIp = InetAddress.getByName(configDict.get("secondaryIp"));
+        } catch (UnknownHostException e) {
+            System.out.println("[ERROR]: Error, could not get secondary IP.");
+            e.printStackTrace();
+        }
+
+        return secIp;
+    }
+
+    public static int getMaxRetries () {
+
+        int maxRetries = Integer.parseInt(configDict.get("maxRetries"));
+        return maxRetries;
+
+    }
+
+    public static int getClientPort() {
+
+        Integer port = Integer.parseInt(configDict.get("clientPort"));
+        return port.intValue();
+    }
 }

@@ -1,28 +1,27 @@
 package aether.app;
 
-import aether.client.AetherClient;
-
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 public class AetherApp {
 
-    AetherClient myClient = new AetherClient();
+    private Socket clientSocket;
+    private int port;
 
-
-    private void printUsage() {
-
-        System.out.println("Usage: java AetherApp [-options] [read|write] [filename] [configfile]");
-        System.out.println("where options include: ");
-        System.out.println("\t-h --help: Print this help message");
-
+    public AetherApp(int port) {
+        this.port = port;
     }
 
-    private void clientInit(String filename) throws SocketTimeoutException, SocketException {
+    private static void printUsage() {
 
-        myClient.init(filename);
+        System.out.println("Usage: java AetherApp [-options] [port] [read|write] [filename]");
+        System.out.println("where options include: ");
+        System.out.println("\t-h --help: Print this help message");
 
     }
 
@@ -41,39 +40,43 @@ public class AetherApp {
 
     public static void main(String[] args) {
 
-        AetherApp myApp = new AetherApp();
+
 
         if (args[0] == "-h" || args[0] == "--help") {
 
-            myApp.printUsage();
+            AetherApp.printUsage();
 
         } else if (args.length < 3) {
 
-            myApp.printUsage();
+            AetherApp.printUsage();
 
         } else {
 
             try {
 
-                myApp.clientInit(args[2]);
+                AetherApp myApp = new AetherApp(Integer.parseInt(args[0]));
 
-                switch (args[0]) {
+                myApp.clientSocket = new Socket();
+                InetSocketAddress endpoint = new InetSocketAddress(myApp.port);
+
+                myApp.clientSocket.connect(endpoint);
+
+                ObjectOutputStream oos = new ObjectOutputStream(myApp.clientSocket.getOutputStream());
+
+                switch (args[1]) {
 
                     case "read":
-                        myApp.myClient.read(args[1]);
-                        myApp.readFile(args[1]);
+                        String readReq = args[1] + ":" + args[2];
+                        oos.writeObject(readReq);
+//                        myApp.readFile(args[1]);
                         break;
                     case "write":
-                        boolean success = myApp.myClient.write(args[1]);
-                        if (success) {
-                            System.out.println("File " + args[1] + " has been written to the cluster.");
-                            break;
-                        } else {
-                            System.out.println("WRITE FAILED.");
-                            break;
-                        }
+                        String writeReq = args[1] + ":" + args[2];
+                        oos.writeObject(writeReq);
+                        break;
                     default:
-                        myApp.printUsage();
+                        AetherApp.printUsage();
+                        break;
 
                 }
 

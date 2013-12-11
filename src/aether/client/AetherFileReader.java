@@ -2,6 +2,7 @@ package aether.client;
 
 
 import aether.io.Chunk;
+import aether.net.ControlMessage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -58,12 +59,11 @@ public class AetherFileReader implements Runnable {
      * Sole constructor.
      *
      * @param fname  The filename, i.e. chunk to be requested
-     * @param ip     The node to request the chunk from
      * @param prt    Port at which to communicate
      * @param mIP    Client node's external IP
      * @param sChunk Shared chunk object between AetherClient and this thread
      */
-    public AetherFileReader(String fname, Integer id, InetAddress ip, int prt, InetAddress mIP, Chunk sChunk, LinkedList<String> ll) {
+    public AetherFileReader(String fname, Integer id, int prt, InetAddress mIP, Chunk sChunk, LinkedList<String> ll) {
 
         filename = fname + ":" + id.toString();
         nodeIps = ll;
@@ -83,9 +83,11 @@ public class AetherFileReader implements Runnable {
      */
     public Object communicate(Socket socket) throws IOException {
 
+        ControlMessage request = new ControlMessage('e', socket.getInetAddress(), filename);
+
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
-        oos.writeObject(filename); // TODO: Chunk name and ID, most probably
+        oos.writeObject(request);
         oos.flush();
 
         ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
