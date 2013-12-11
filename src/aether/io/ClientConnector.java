@@ -211,7 +211,7 @@ public class ClientConnector implements Runnable {
                     NetMgr.getBroadcastAddr(), filename);
             log.log(Level.FINE, "Querying for the chunk list of file {0}", 
                     filename);
-            netmgr.send(probe);
+            netmgr.send(probe, ConfigMgr.getCoOrdPort());
             
             HashMap<Integer, LinkedList<InetAddress>> chunkMap = 
                     new HashMap<>();
