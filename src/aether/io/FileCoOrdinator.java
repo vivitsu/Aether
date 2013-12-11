@@ -43,6 +43,7 @@ public class FileCoOrdinator implements Runnable {
     public FileCoOrdinator () 
             throws SocketException {
         
+        port = ConfigMgr.getCoOrdPort();
         if (isOne) {
             log.warning("One File co-ordinator is already running");
             throw new UnsupportedOperationException();
