@@ -32,7 +32,7 @@ public class Replication {
 		HtbtSender s = new HtbtSender (hbm);		
 		HtbtReceiver r = new HtbtReceiver ();
 		ReplicationListener rl = ReplicationListener.getInstance();
-		ChunkSpaceMap csm = new ChunkSpaceMap ();
+		ChunkSpaceMap csm = ChunkSpaceMap.getInstance();
 		ChunkManager cm = ChunkManager.getInstance();
 		FileChunkMetadata fcm = new FileChunkMetadata ();
 		new Thread(s).start();
