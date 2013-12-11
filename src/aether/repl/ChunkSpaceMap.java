@@ -77,8 +77,9 @@ class ChunkSpaceMap implements Runnable{
 	 * adds the metadata into the data structure
 	 * */
 	public synchronized void put (InetAddress ipAddress, int port, long spaceAvailable) {
-		freeMemory.add(new NodeSpace (ipAddress, port, spaceAvailable));
 		System.out.println("Free space "+ spaceAvailable + " at "+ipAddress);
+		freeMemory.add(new NodeSpace (ipAddress, port, spaceAvailable));
+		
 	}
 
 
@@ -127,10 +128,11 @@ private synchronized void processMemorySpaceRequired(Message m) throws IOExcepti
 
 
 private synchronized void UpdateFreespace(Message m){
-	
+		
 		ControlMessage freespace = (ControlMessage)m;
-		InetAddress nodeInContext = freespace.getSourceIp();
+		InetAddress nodeInContext = freespace.getSourceIp();		
 		long spaceAvailable = Long.parseLong(freespace.parseAControl());
+		System.out.println("Updating space :" + nodeInContext + " has space " +spaceAvailable);
 		this.put(m.getSourceIp(), Replication.REPL_PORT_LISTENER, spaceAvailable);		
 		
 }
