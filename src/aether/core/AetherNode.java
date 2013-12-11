@@ -7,6 +7,7 @@ package aether.core;
 import aether.cluster.ClusterMgr;
 import aether.conf.ConfigMgr;
 import aether.io.DataMgr;
+import aether.repl.Replication;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.logging.ConsoleHandler;
@@ -96,6 +97,8 @@ public class AetherNode {
                     // nothing to do here
                 }
             }
+            
+            Replication repl = Replication.getInstance();
             
         } catch (UnsupportedOperationException ex) {
             // This means cluster manager is already running. No worries then.
