@@ -166,7 +166,7 @@ private synchronized void processspacemessage(Message m) throws IOException{
 			processspacemessage(spacerequest);
 		} catch (IOException e) {
 			
-			//repllog.warning("Did not receive the space Map messages");
+			repllog.warning("Did not receive the space Map messages");
 		}
 	
 		}
