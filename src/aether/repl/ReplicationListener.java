@@ -55,14 +55,15 @@ public class ReplicationListener implements Runnable {
 				oos.close();
 				ois.close();
 				
+				
 				System.out.println("Got the chunk "+c.getChunkName() + "and wrote to local machine");
 				
-				/*/Update the local data structure FileChunk Metadata structure
+				//Update the local data structure FileChunk Metadata structure
 				FileChunkMetadata fcm = FileChunkMetadata.getInstance();
 				fcm.addChunk(c.getFileName(), new ChunkMetadata(c));
 				
 				//Update the HtbtBuddy map
-				HtbtBuddyMap hbm = HtbtBuddyMap.getInstance();
+				/*HtbtBuddyMap hbm = HtbtBuddyMap.getInstance();
 				hbm.put(new Host (s.getInetAddress(), Replication.HTBT_SND_PORT_NUMBER), null);*/
 				
 			}
